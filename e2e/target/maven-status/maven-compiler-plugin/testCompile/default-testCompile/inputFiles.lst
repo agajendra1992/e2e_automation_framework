@@ -1,5 +1,6 @@
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/java/com/company/tests/api/LoginApiTest.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/java/com/company/tests/base/APIBaseTest.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/java/com/company/tests/base/BaseTest.java
+/Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/java/com/company/tests/base/ConfigTest.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/java/com/company/tests/base/UIBaseTest.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/java/com/company/tests/ui/LoginTest.java

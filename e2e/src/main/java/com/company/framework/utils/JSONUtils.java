@@ -1,3 +1,4 @@
+package com.company.framework.utils;
 public class JSONUtils {
     
 }

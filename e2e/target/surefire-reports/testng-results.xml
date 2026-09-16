@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testng-results ignored="0" total="0" passed="0" failed="0" skipped="0">
+<testng-results ignored="0" total="1" passed="1" failed="0" skipped="0">
   <reporter-output>
   </reporter-output>
-  <suite started-at="2026-09-16T12:02:55 IST" name="E2E Test Suite" finished-at="2026-09-16T12:02:55 IST" duration-ms="9">
+  <suite started-at="2026-09-16T15:36:11 IST" name="E2E Test Suite" finished-at="2026-09-16T15:36:11 IST" duration-ms="37">
     <groups>
     </groups>
-    <test started-at="2026-09-16T12:02:55 IST" name="E2E Tests" finished-at="2026-09-16T12:02:55 IST" duration-ms="9">
+    <test started-at="2026-09-16T15:36:11 IST" name="E2E Tests" finished-at="2026-09-16T15:36:11 IST" duration-ms="37">
+      <class name="com.company.tests.base.ConfigTest">
+        <test-method signature="verifyConfiguration()[pri:0, instance:com.company.tests.base.ConfigTest@6572421]" started-at="2026-09-16T15:36:11 IST" name="verifyConfiguration" finished-at="2026-09-16T15:36:11 IST" duration-ms="7" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- verifyConfiguration -->
+      </class> <!-- com.company.tests.base.ConfigTest -->
     </test> <!-- E2E Tests -->
   </suite> <!-- E2E Test Suite -->
 </testng-results>

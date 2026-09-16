@@ -3,7 +3,8 @@
 <suite name="E2E Test Suite">
 	<test name="E2E Tests">
 		<classes>
-			<!-- Add TestNG test classes here. -->
+			<!--class Add TestNG test classes here. -->
+			<class name="com.company.tests.base.ConfigTest"></class>
 		</classes>
 	</test>
 </suite>
