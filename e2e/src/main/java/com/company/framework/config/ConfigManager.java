@@ -10,7 +10,7 @@ public class ConfigManager {
     static {
         String environment = System.getProperty("env", "qa");
         // ClassLoader scans target/test-classes directly. No more file paths needed!
-        String fileName = "config/config" + environment + ".properties";
+        String fileName = "config/config-" + environment + ".properties";
         
         try (InputStream inputStream = ConfigManager.class.getClassLoader().getResourceAsStream(fileName)) {
             if (inputStream == null) {
