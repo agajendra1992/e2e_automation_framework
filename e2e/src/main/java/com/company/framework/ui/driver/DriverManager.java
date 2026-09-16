@@ -1,3 +1,3 @@
-public ws DriverManager {
+public class DriverManager {
     
 }

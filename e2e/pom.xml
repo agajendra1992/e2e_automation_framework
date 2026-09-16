@@ -7,12 +7,278 @@
   <version>1.0-SNAPSHOT</version>
   <name>e2e</name>
   <url>http://maven.apache.org</url>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <!-- ===================================================== -->
+    <!--                  VERSION MANAGEMENT                   -->
+    <!-- ===================================================== -->
+
+    <properties>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <java.version>17</java.version>
+
+        <!-- Selenium -->
+        <selenium.version>4.35.0</selenium.version>
+
+        <!-- WebDriver Manager -->
+        <webdrivermanager.version>6.2.0</webdrivermanager.version>
+
+        <!-- Rest Assured -->
+        <rest-assured.version>5.5.6</rest-assured.version>
+
+        <!-- TestNG -->
+        <testng.version>7.11.0</testng.version>
+
+        <!-- Jackson -->
+        <jackson.version>2.20.0</jackson.version>
+
+        <!-- JSON Schema -->
+        <json-schema.version>5.5.6</json-schema.version>
+
+        <!-- Apache POI -->
+        <poi.version>5.4.1</poi.version>
+
+        <!-- MySQL -->
+        <mysql.version>9.4.0</mysql.version>
+
+        <!-- Extent Reports -->
+        <extent.version>5.1.2</extent.version>
+
+        <!-- Java Faker -->
+        <faker.version>1.0.2</faker.version>
+
+        <!-- Logging -->
+        <slf4j.version>2.0.17</slf4j.version>
+        <logback.version>1.5.18</logback.version>
+
+        <!-- Lombok -->
+        <lombok.version>1.18.38</lombok.version>
+
+        <!-- Maven Surefire -->
+        <surefire.version>3.5.3</surefire.version>
+
+    </properties>
+
+
+    <!-- ===================================================== -->
+    <!--                    DEPENDENCIES                       -->
+    <!-- ===================================================== -->
+
+    <dependencies>
+
+
+        <!-- ================================================= -->
+        <!--                    SELENIUM                        -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                WEBDRIVER MANAGER                  -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>${webdrivermanager.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                  REST ASSURED                      -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>${rest-assured.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--              REST ASSURED JSON SCHEMA             -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>${json-schema.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                      TESTNG                        -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                     JACKSON                        -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                 APACHE POI / EXCEL                 -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                    DATABASE                        -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                  EXTENT REPORT                     -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>com.aventstack</groupId>
+            <artifactId>extentreports</artifactId>
+            <version>${extent.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                    JAVA FAKER                      -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <version>${faker.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                    LOGGING                         -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+
+        <!-- ================================================= -->
+        <!--                     LOMBOK                         -->
+        <!-- ================================================= -->
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <!-- ===================================================== -->
+    <!--                     BUILD PLUGINS                     -->
+    <!-- ===================================================== -->
+
+    <build>
+
+        <plugins>
+
+            <!-- ============================================= -->
+            <!--                 MAVEN COMPILER                 -->
+            <!-- ============================================= -->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
+
+
+            <!-- ============================================= -->
+            <!--                  SUREFIRE                      -->
+            <!-- ============================================= -->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+
+                <configuration>
+
+                    <suiteXmlFiles>
+                        <suiteXmlFile>
+                            testng.xml
+                        </suiteXmlFile>
+                    </suiteXmlFiles>
+
+                    <systemPropertyVariables>
+
+                        <env>
+                            ${env}
+                        </env>
+
+                        <browser>
+                            ${browser}
+                        </browser>
+
+                    </systemPropertyVariables>
+
+                </configuration>
+
+            </plugin>
+
+        </plugins>
+
+    </build>
+
 </project>
