@@ -22,4 +22,16 @@ public final class DriverManager {
         return driver;
     }
 
+    public static void quitDriver() {
+
+        WebDriver driver = DRIVER.get();
+
+        if (driver != null) {
+
+            driver.quit();
+
+            DRIVER.remove();
+        }
+    }
+
 }

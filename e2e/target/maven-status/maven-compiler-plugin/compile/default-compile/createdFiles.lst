@@ -1,4 +1,5 @@
 com/company/framework/constants/UiConstantUtils.class
+com/company/framework/ui/pages/UIBaseUtils.class
 com/company/framework/ui/driver/DriverFactory.class
 com/company/framework/listeners/AnnotationTransfomer.class
 com/company/framework/ui/components/HeaderComponents.class

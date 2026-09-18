@@ -5,6 +5,7 @@
 		<classes>
 			<!--class Add TestNG test classes here. -->
 			<class name="com.company.tests.base.ConfigTest"></class>
+			<class name="com.company.tests.base.DriverTest"></class>
 		</classes>
 	</test>
 </suite>

@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testng-results ignored="0" total="1" passed="1" failed="0" skipped="0">
+<testng-results ignored="0" total="2" passed="2" failed="0" skipped="0">
   <reporter-output>
   </reporter-output>
-  <suite started-at="2026-09-16T15:50:21 IST" name="E2E Test Suite" finished-at="2026-09-16T15:50:21 IST" duration-ms="35">
+  <suite started-at="2026-09-18T11:45:35 IST" name="E2E Test Suite" finished-at="2026-09-18T11:45:38 IST" duration-ms="2954">
     <groups>
     </groups>
-    <test started-at="2026-09-16T15:50:21 IST" name="E2E Tests" finished-at="2026-09-16T15:50:21 IST" duration-ms="35">
+    <test started-at="2026-09-18T11:45:35 IST" name="E2E Tests" finished-at="2026-09-18T11:45:38 IST" duration-ms="2954">
       <class name="com.company.tests.base.ConfigTest">
-        <test-method signature="verifyConfiguration()[pri:0, instance:com.company.tests.base.ConfigTest@6572421]" started-at="2026-09-16T15:50:21 IST" name="verifyConfiguration" finished-at="2026-09-16T15:50:21 IST" duration-ms="6" status="PASS">
+        <test-method signature="verifyConfiguration()[pri:0, instance:com.company.tests.base.ConfigTest@399f45b1]" started-at="2026-09-18T11:45:35 IST" name="verifyConfiguration" finished-at="2026-09-18T11:45:35 IST" duration-ms="5" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- verifyConfiguration -->
       </class> <!-- com.company.tests.base.ConfigTest -->
+      <class name="com.company.tests.base.DriverTest">
+        <test-method is-config="true" signature="setup()[pri:0, instance:com.company.tests.base.DriverTest@74fe5c40]" started-at="2026-09-18T11:45:35 IST" name="setup" finished-at="2026-09-18T11:45:37 IST" duration-ms="2327" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- setup -->
+        <test-method signature="launchBrowser()[pri:0, instance:com.company.tests.base.DriverTest@74fe5c40]" started-at="2026-09-18T11:45:37 IST" name="launchBrowser" finished-at="2026-09-18T11:45:38 IST" duration-ms="441" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- launchBrowser -->
+        <test-method is-config="true" signature="tearDown()[pri:0, instance:com.company.tests.base.DriverTest@74fe5c40]" started-at="2026-09-18T11:45:38 IST" name="tearDown" finished-at="2026-09-18T11:45:38 IST" duration-ms="152" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- tearDown -->
+      </class> <!-- com.company.tests.base.DriverTest -->
     </test> <!-- E2E Tests -->
   </suite> <!-- E2E Test Suite -->
 </testng-results>

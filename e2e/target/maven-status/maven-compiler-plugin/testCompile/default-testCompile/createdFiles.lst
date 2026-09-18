@@ -1,6 +1,7 @@
 com/company/tests/api/LoginApiTest.class
 com/company/tests/base/APIBaseTest.class
 com/company/tests/ui/LoginTest.class
+com/company/tests/base/DriverTest.class
 com/company/tests/base/UIBaseTest.class
 com/company/tests/base/ConfigTest.class
 com/company/tests/base/BaseTest.class

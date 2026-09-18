@@ -23,6 +23,7 @@
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/main/java/com/company/framework/ui/driver/DriverFactory.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/main/java/com/company/framework/ui/driver/DriverManager.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/main/java/com/company/framework/ui/pages/LoginPage.java
+/Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/main/java/com/company/framework/ui/pages/UIBaseUtils.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/main/java/com/company/framework/ui/waits/WaitUtils.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/main/java/com/company/framework/utils/ExcelUtils.java
 /Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/main/java/com/company/framework/utils/JSONUtils.java
