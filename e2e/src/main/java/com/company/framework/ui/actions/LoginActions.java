@@ -15,11 +15,6 @@ public class LoginActions extends UIBaseUtils {
 
     private LoginPage loginPage = new LoginPage();
 
-    public void clickOnLoginButton() {
-        waitForClickable(loginPage.clickLoginElement());
-        click(loginPage.clickLoginElement());
-    }
-
     public void loginCredentials(String username, String password) {
         waitForVisiblity(loginPage.setEmailElement());
         setText(loginPage.setEmailElement(), username);
@@ -30,6 +25,7 @@ public class LoginActions extends UIBaseUtils {
     public void submitLogin() {
         waitForClickable(loginPage.submitElement());
         click(loginPage.submitElement());
+ 
     }
 
 }
