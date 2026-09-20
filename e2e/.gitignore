@@ -1,0 +1,56 @@
+# ==============================================================================
+# Build Artifacts & Dependencies
+# ==============================================================================
+target/
+/target/
+bin/
+obj/
+out/
+*.class
+*.jar
+*.war
+*.ear
+
+# ==============================================================================
+# IDEs and Editors
+# ==============================================================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+
+# ==============================================================================
+# Operating System Files
+# ==============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+desktop.ini
+
+# ==============================================================================
+# Local Environment & Secrets (NEVER commit these)
+# ==============================================================================
+.env
+.env.local
+.env.*.local
+*.log
