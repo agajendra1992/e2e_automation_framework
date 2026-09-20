@@ -4,8 +4,9 @@
 	<test name="E2E Tests">
 		<classes>
 			<!--class Add TestNG test classes here. -->
-			<class name="com.company.tests.base.ConfigTest"></class>
-			<class name="com.company.tests.base.DriverTest"></class>
+			<!-- <class name="com.company.tests.base.ConfigTest"></class> -->
+			<!-- <class name="com.company.tests.base.DriverTest"></class> -->
+			<class name="com.company.tests.ui.LoginTest"></class>
 		</classes>
 	</test>
 </suite>
