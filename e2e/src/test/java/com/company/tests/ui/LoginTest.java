@@ -15,6 +15,7 @@ public class LoginTest extends UIBaseTest {
         //loginActions.clickOnLoginButton();
         loginActions.loginCredentials(ConfigManager.get("username"), ConfigManager.get("password"));
         loginActions.submitLogin();
+        LoginValidations loginValidation = new LoginValidations(DriverManager.getDriver());
     }
 
 }
