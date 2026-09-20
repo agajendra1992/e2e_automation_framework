@@ -1,23 +1,20 @@
 package com.company.tests.ui;
 
-import org.openqa.selenium.WebDriver;
 import org.testng.annotations.Test;
 
 import com.company.framework.config.ConfigManager;
 import com.company.framework.ui.actions.LoginActions;
+import com.company.framework.ui.driver.DriverManager;
+import com.company.tests.base.UIBaseTest;
 
-public class LoginTest extends LoginActions {
-
-  public LoginTest(WebDriver driver) {
-        super(driver);
-    }
+public class LoginTest extends UIBaseTest {
 
     @Test
     public void login() {
-        clickOnLoginButton();
-        loginCredentials("test@test.com", "Asd@1234");
-       // loginCredentials(ConfigManager.get("username"), ConfigManager.get("password"));
-        submitLogin();
+        LoginActions loginActions = new LoginActions(DriverManager.getDriver());
+        loginActions.clickOnLoginButton();
+        loginActions.loginCredentials(ConfigManager.get("username"), ConfigManager.get("password"));
+        loginActions.submitLogin();
     }
 
 }

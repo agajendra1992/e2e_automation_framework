@@ -24,10 +24,10 @@ public abstract class UIBaseUtils {
     public UIBaseUtils(WebDriver driver, WebDriverWait wait, Actions actions, Select select, WebElement element) {
         this.element = element;
         this.driver = DriverManager.getDriver();
-        this.wait = new WebDriverWait(driver,
+        this.wait = new WebDriverWait(this.driver,
                 Duration.ofSeconds(Integer.parseInt(ConfigManager.get("ui.timeout"))));
-        this.actions = new Actions(driver);
-        this.select = new Select(element);
+        this.actions = new Actions(this.driver);
+        this.select = (element != null) ? new Select(element) : null;
 
     }
 
@@ -48,7 +48,7 @@ public abstract class UIBaseUtils {
     }
 
     protected void click(By locator) {
-        waitForClickable(locator);
+        waitForClickable(locator).click();
     }
 
     protected void click(WebElement element) {
@@ -117,8 +117,9 @@ public abstract class UIBaseUtils {
             By locator,
             String visibleText) {
 
-        // WebElement element =
-        // waitForVisiblity(locator);
+        if (select == null) {
+            throw new IllegalStateException("Select control is not initialized for locator: " + locator);
+        }
 
         select.selectByVisibleText(visibleText);
     }
@@ -127,8 +128,9 @@ public abstract class UIBaseUtils {
             By locator,
             String value) {
 
-        // WebElement element =
-        // waitForVisiblity(locator);
+        if (select == null) {
+            throw new IllegalStateException("Select control is not initialized for locator: " + locator);
+        }
 
         select.selectByValue(value);
     }
