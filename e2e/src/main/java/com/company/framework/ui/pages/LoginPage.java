@@ -11,12 +11,21 @@ public class LoginPage{
 
     private WebDriver driver;
     private static final String username = "";
-    private static final 
+    private static final String loginButtonSelector ="//a[text()='Log in']";
+    private static final String emailIdSelector ="//input[@name='Email']";
+    private static final String passwordIdSelector ="//input[@name='Password']";
+    private static final String submitSelector ="//input[@name='Log in']";
 
     private LoginPage(WebDriver driver){
         this.driver = driver;
 
     }
+
+    public void clickLogin(WebElement element){
+
+    }
+
+
 
     
     }
