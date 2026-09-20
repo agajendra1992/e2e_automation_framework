@@ -13,65 +13,63 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import com.company.framework.config.ConfigManager;
 import com.company.framework.ui.driver.DriverManager;
 
-
 public abstract class UIBaseUtils {
 
-    protected  WebDriver driver;
-    protected  WebDriverWait wait;
-    protected  Actions actions; 
-    protected  Select select;
-    protected  WebElement element;
-    UIBaseUtils(WebDriver driver, WebDriverWait wait, Actions actions, Select select, WebElement element){
+    public WebDriver driver;
+    public WebDriverWait wait;
+    public Actions actions;
+    public Select select;
+    public WebElement element;
+
+    public UIBaseUtils(WebDriver driver, WebDriverWait wait, Actions actions, Select select, WebElement element) {
         this.element = element;
         this.driver = DriverManager.getDriver();
-        this.wait = new WebDriverWait(driver, 
-            Duration.ofSeconds(Integer.parseInt(ConfigManager.get("ui.timeout"))));
+        this.wait = new WebDriverWait(driver,
+                Duration.ofSeconds(Integer.parseInt(ConfigManager.get("ui.timeout"))));
         this.actions = new Actions(driver);
         this.select = new Select(element);
 
     }
 
-    protected WebElement waitForVisiblity(By locator){
+    protected WebElement waitForVisiblity(By locator) {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
 
-    protected  WebElement waitForClickable(By locator){
+    protected WebElement waitForClickable(By locator) {
         return wait.until(ExpectedConditions.elementToBeClickable(locator));
     }
 
-    protected void waitforDisaspperWebElement(By locator){
-          wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+    protected void waitforDisaspperWebElement(By locator) {
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
     }
 
-    protected void waitforPagetitleElement(String title){
-          wait.until(ExpectedConditions.titleContains(title));
+    protected void waitforPagetitleElement(String title) {
+        wait.until(ExpectedConditions.titleContains(title));
     }
 
-
-    protected void click(By locator){
+    protected void click(By locator) {
         waitForClickable(locator);
     }
 
-    protected void click(WebElement element){
+    protected void click(WebElement element) {
         wait.until(ExpectedConditions.elementToBeClickable(element)).click();
     }
 
-    protected void setText(By locator, String text){
+    protected void setText(By locator, String text) {
         WebElement element = waitForVisiblity(locator);
         element.clear();
         element.sendKeys(text);
     }
 
-    protected void clear(By locator){
+    protected void clear(By locator) {
         WebElement element = waitForVisiblity(locator);
         element.clear();
     }
 
-protected String getText(By locator) {
+    protected String getText(By locator) {
 
         return waitForVisiblity(locator).getText();
     }
-
 
     protected String getAttribute(
             By locator,
@@ -80,7 +78,6 @@ protected String getText(By locator) {
         return waitForVisiblity(locator)
                 .getAttribute(attributeName);
     }
-
 
     // =========================================================
     // Element State
@@ -99,7 +96,6 @@ protected String getText(By locator) {
         }
     }
 
-
     protected boolean isEnabled(By locator) {
 
         try {
@@ -113,7 +109,6 @@ protected String getText(By locator) {
         }
     }
 
-
     // =========================================================
     // Dropdown
     // =========================================================
@@ -123,23 +118,20 @@ protected String getText(By locator) {
             String visibleText) {
 
         // WebElement element =
-        //         waitForVisiblity(locator);
+        // waitForVisiblity(locator);
 
         select.selectByVisibleText(visibleText);
     }
-
 
     protected void selectByValue(
             By locator,
             String value) {
 
         // WebElement element =
-        //         waitForVisiblity(locator);
-
+        // waitForVisiblity(locator);
 
         select.selectByValue(value);
     }
-
 
     // =========================================================
     // Mouse Actions
@@ -147,23 +139,19 @@ protected String getText(By locator) {
 
     protected void hover(By locator) {
 
-        WebElement element =
-                waitForVisiblity(locator);
+        WebElement element = waitForVisiblity(locator);
 
         actions.moveToElement(element)
                 .perform();
     }
 
-
     protected void doubleClick(By locator) {
 
-        WebElement element =
-                waitForClickable(locator);
+        WebElement element = waitForClickable(locator);
 
         actions.doubleClick(element)
                 .perform();
     }
-
 
     // =========================================================
     // Scrolling
@@ -171,13 +159,11 @@ protected String getText(By locator) {
 
     protected void scrollToElement(By locator) {
 
-        WebElement element =
-                waitForVisiblity(locator);
+        WebElement element = waitForVisiblity(locator);
 
         actions.scrollToElement(element)
                 .perform();
     }
-
 
     // =========================================================
     // JavaScript
@@ -187,19 +173,15 @@ protected String getText(By locator) {
 
         ((org.openqa.selenium.JavascriptExecutor) driver)
                 .executeScript(
-                        "window.scrollTo(0, document.body.scrollHeight);"
-                );
+                        "window.scrollTo(0, document.body.scrollHeight);");
     }
-
 
     protected void scrollToTop() {
 
         ((org.openqa.selenium.JavascriptExecutor) driver)
                 .executeScript(
-                        "window.scrollTo(0, 0);"
-                );
+                        "window.scrollTo(0, 0);");
     }
-
 
     // =========================================================
     // URL
@@ -210,12 +192,10 @@ protected String getText(By locator) {
         driver.get(url);
     }
 
-
     protected String getCurrentUrl() {
 
         return driver.getCurrentUrl();
     }
-
 
     // =========================================================
     // Browser
