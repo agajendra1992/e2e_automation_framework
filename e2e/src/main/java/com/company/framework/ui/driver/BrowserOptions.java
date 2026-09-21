@@ -15,13 +15,14 @@ public class BrowserOptions {
         if (headless) {
             options.addArguments("--headless=new");
         }
-        options.addArguments("--start-maximized");
-        options.addArguments("--disable-notifications");
-        options.addArguments("--no-sandbox");
-options.addArguments("--disable-dev-shm-usage");
-options.addArguments("--disable-gpu");
-options.addArguments("--window-size=1920,1080");
-options.addArguments("--disable-notifications");
+     options.addArguments("--no-sandbox"); 
+     options.addArguments("--disable-dev-shm-usage");
+     options.addArguments("--disable-gpu"); 
+     options.addArguments("--disable-software-rasterizer"); 
+     options.addArguments("--disable-extensions");
+     options.addArguments("--window-size=1920,1080");
+     options.addArguments("--disable-notifications");
+     options.addArguments("--user-data-dir=/tmp/jenkins-chrome");
         return options;
     }
 
