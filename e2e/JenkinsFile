@@ -9,27 +9,19 @@ pipeline {
             }
         }
 
-        stage('Maven Clean') {
-            steps {
-                sh 'mvn clean'
-            }
-        }
-
-        stage('Compile') {
-            steps {
-                sh 'mvn compile -DskipTests'
-            }
-        }
-
         stage('Run Automation Tests') {
             steps {
-                sh 'mvn test'
+                dir('e2e') {
+                    sh 'mvn clean test'
+                }
             }
         }
 
         stage('Publish Test Results') {
             steps {
-                junit 'target/surefire-reports/*.xml'
+                dir('e2e') {
+                    junit 'target/surefire-reports/*.xml'
+                }
             }
         }
     }
