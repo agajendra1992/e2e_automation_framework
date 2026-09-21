@@ -7,6 +7,7 @@
 			<!-- <class name="com.company.tests.base.ConfigTest"></class> -->
 			<!-- <class name="com.company.tests.base.DriverTest"></class> -->
 			<class name="com.company.tests.ui.LoginTest"></class>
+			<class name="com.company.tests.api.GetUserTest"></class>
 		</classes>
 	</test>
 </suite>
