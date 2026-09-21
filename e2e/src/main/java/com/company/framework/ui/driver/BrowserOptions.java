@@ -12,9 +12,9 @@ public class BrowserOptions {
 
     public ChromeOptions chromeOptions(boolean headless) {
         ChromeOptions options = new ChromeOptions();
-        if (headless) {
+        //if (headless) {
             options.addArguments("--headless=new");
-        }
+        //}
         
      options.addArguments("--no-sandbox"); 
      options.addArguments("--disable-dev-shm-usage");
