@@ -1,26 +1,55 @@
 pipeline {
     agent any
 
+    environment {
+        JAVA17_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+    }
+
     stages {
 
-        stage('Checkout Code') {
+        stage('Verify Java') {
             steps {
-                checkout scm
+                sh '''
+                    export JAVA_HOME=$JAVA17_HOME
+                    export PATH=$JAVA_HOME/bin:$PATH
+
+                    echo "JAVA_HOME=$JAVA_HOME"
+                    java -version
+                    javac -version
+                    mvn -version
+                '''
             }
         }
 
-        stage('Run Automation Tests') {
+        stage('Maven Clean') {
             steps {
                 dir('e2e') {
-                    sh 'mvn clean test'
+                    sh '''
+                        export JAVA_HOME=$JAVA17_HOME
+                        export PATH=$JAVA_HOME/bin:$PATH
+                        mvn clean
+                    '''
                 }
             }
         }
 
-        stage('Publish Test Results') {
+        stage('Run Tests') {
             steps {
                 dir('e2e') {
-                    junit 'target/surefire-reports/*.xml'
+                    sh '''
+                        export JAVA_HOME=$JAVA17_HOME
+                        export PATH=$JAVA_HOME/bin:$PATH
+                        mvn test
+                    '''
+                }
+            }
+        }
+
+        stage('Test Results') {
+            steps {
+                dir('e2e') {
+                    junit allowEmptyResults: true,
+                          testResults: 'target/surefire-reports/*.xml'
                 }
             }
         }

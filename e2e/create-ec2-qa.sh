@@ -1,248 +1,175 @@
-
 #!/bin/bash
 
-set -e
+set -u
 
 # ============================================================
-# EC2 + JENKINS + GITHUB MASTER SETUP
-# Run this script from your Mac
+# CONFIGURATION
 # ============================================================
 
 REGION="ap-south-1"
-
-INSTANCE_TYPE="t3.small"
 INSTANCE_NAME="qa-automation-server"
+INSTANCE_TYPE="t3.small"
 
-KEY_NAME="qa-automation-key"
+VPC_ID="vpc-05d7719c05d193867"
+SECURITY_GROUP_NAME="qa-automation-sg"
+
 KEY_PATH="/Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/resources/config/qa-automation-key.pem"
 
-SECURITY_GROUP_NAME="qa-automation-sg"
-VPC_ID="vpc-05d7719c05d193867"
+GITHUB_REPO="https://github.com/agajendra1992/e2e_automation_framework.git"
+GITHUB_BRANCH="gajendra"
 
-GITHUB_REPO_URL="https://github.com/agajendra1992/e2e_automation_framework.git"
-GITHUB_BRANCH="master"
-
-JENKINS_JOB_NAME="e2e-automation"
+JENKINS_JOB="e2e-automation"
+JENKINSFILE="e2e/JenkinsFile"
 
 JENKINS_ADMIN_USER="admin"
+JENKINS_ADMIN_PASSWORD="admin123"
 
-echo ""
-echo "============================================================"
-echo "       QA AUTOMATION EC2 + JENKINS SETUP"
-echo "============================================================"
-echo ""
+GITHUB_CREDENTIAL_ID="agajendra1992"
+
+JAVA17="/usr/lib/jvm/java-17-openjdk-amd64"
+JAVA21="/usr/lib/jvm/java-21-openjdk-amd64"
 
 # ============================================================
-# CHECK AWS CLI
+# COLORS
 # ============================================================
 
-if ! command -v aws >/dev/null 2>&1; then
-    echo "ERROR: AWS CLI is not installed."
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+info() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# ============================================================
+# CHECK LOCAL REQUIREMENTS
+# ============================================================
+
+echo
+echo "=============================================="
+echo " QA AUTOMATION EC2 + JENKINS SETUP"
+echo "=============================================="
+echo
+
+command -v aws >/dev/null 2>&1 || {
+    error "AWS CLI not installed."
     exit 1
-fi
+}
 
-echo "AWS CLI: OK"
-
-# ============================================================
-# CHECK AWS LOGIN
-# ============================================================
-
-if ! aws sts get-caller-identity >/dev/null 2>&1; then
-    echo "ERROR: AWS authentication failed."
+command -v ssh >/dev/null 2>&1 || {
+    error "SSH not available."
     exit 1
-fi
-
-echo "AWS authentication: OK"
-
-# ============================================================
-# CHECK SSH KEY
-# ============================================================
+}
 
 if [ ! -f "$KEY_PATH" ]; then
-    echo "ERROR: SSH key not found:"
+    error "SSH key not found:"
     echo "$KEY_PATH"
     exit 1
 fi
 
 chmod 400 "$KEY_PATH"
 
-echo "SSH key: OK"
+info "Checking AWS login..."
 
-# ============================================================
-# CHECK VPC
-# ============================================================
+aws sts get-caller-identity --region "$REGION" >/dev/null 2>&1
 
-VPC_CHECK=$(aws ec2 describe-vpcs \
-    --region "$REGION" \
-    --vpc-ids "$VPC_ID" \
-    --query "Vpcs[0].VpcId" \
-    --output text 2>/dev/null || true)
-
-if [ "$VPC_CHECK" != "$VPC_ID" ]; then
-    echo "ERROR: VPC not found:"
-    echo "$VPC_ID"
+if [ $? -ne 0 ]; then
+    error "AWS login failed."
     exit 1
 fi
 
-echo "VPC: $VPC_ID"
+info "AWS login successful."
 
 # ============================================================
-# FIND LATEST UBUNTU 24.04 AMI
+# FIND EXISTING EC2
 # ============================================================
 
-echo ""
-echo "Finding latest Ubuntu 24.04 AMI..."
-
-AMI_ID=$(aws ec2 describe-images \
-    --region "$REGION" \
-    --owners 099720109477 \
-    --filters \
-    "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" \
-    "Name=state,Values=available" \
-    "Name=architecture,Values=x86_64" \
-    --query "Images | sort_by(@,&CreationDate)[-1].ImageId" \
-    --output text)
-
-if [ -z "$AMI_ID" ] || [ "$AMI_ID" = "None" ]; then
-    echo "ERROR: Ubuntu AMI not found."
-    exit 1
-fi
-
-echo "AMI: $AMI_ID"
-
-# ============================================================
-# FIND SUBNET
-# ============================================================
-
-echo ""
-echo "Finding subnet..."
-
-SUBNET_ID=$(aws ec2 describe-subnets \
-    --region "$REGION" \
-    --filters "Name=vpc-id,Values=$VPC_ID" \
-    --query "Subnets[?MapPublicIpOnLaunch==\`true\`][0].SubnetId" \
-    --output text)
-
-if [ -z "$SUBNET_ID" ] || [ "$SUBNET_ID" = "None" ]; then
-
-    SUBNET_ID=$(aws ec2 describe-subnets \
-        --region "$REGION" \
-        --filters "Name=vpc-id,Values=$VPC_ID" \
-        --query "Subnets[0].SubnetId" \
-        --output text)
-fi
-
-if [ -z "$SUBNET_ID" ] || [ "$SUBNET_ID" = "None" ]; then
-    echo "ERROR: No subnet found in VPC."
-    exit 1
-fi
-
-echo "Subnet: $SUBNET_ID"
-
-# ============================================================
-# GET MAC PUBLIC IP
-# ============================================================
-
-echo ""
-echo "Getting your public IP..."
-
-MY_IP=$(curl -fsS https://checkip.amazonaws.com | tr -d '[:space:]')
-
-if [ -z "$MY_IP" ]; then
-    echo "ERROR: Could not determine public IP."
-    exit 1
-fi
-
-echo "Your IP: $MY_IP"
-
-# ============================================================
-# SECURITY GROUP
-# ============================================================
-
-echo ""
-echo "============================================================"
-echo " SECURITY GROUP"
-echo "============================================================"
-
-SG_ID=$(aws ec2 describe-security-groups \
-    --region "$REGION" \
-    --filters \
-    "Name=group-name,Values=$SECURITY_GROUP_NAME" \
-    "Name=vpc-id,Values=$VPC_ID" \
-    --query "SecurityGroups[0].GroupId" \
-    --output text 2>/dev/null || true)
-
-if [ "$SG_ID" = "None" ] || [ -z "$SG_ID" ]; then
-
-    echo "Creating security group..."
-
-    SG_ID=$(aws ec2 create-security-group \
-        --region "$REGION" \
-        --group-name "$SECURITY_GROUP_NAME" \
-        --description "QA Automation Jenkins Security Group" \
-        --vpc-id "$VPC_ID" \
-        --query "GroupId" \
-        --output text)
-
-fi
-
-echo "Security Group: $SG_ID"
-
-# ============================================================
-# SSH 22
-# ============================================================
-
-echo ""
-echo "Configuring SSH port 22..."
-
-aws ec2 authorize-security-group-ingress \
-    --region "$REGION" \
-    --group-id "$SG_ID" \
-    --protocol tcp \
-    --port 22 \
-    --cidr "$MY_IP/32" \
-    >/dev/null 2>&1 || true
-
-# ============================================================
-# JENKINS 8080
-# ============================================================
-
-echo "Configuring Jenkins port 8080..."
-
-aws ec2 authorize-security-group-ingress \
-    --region "$REGION" \
-    --group-id "$SG_ID" \
-    --protocol tcp \
-    --port 8080 \
-    --cidr 0.0.0.0/0 \
-    >/dev/null 2>&1 || true
-
-echo "Security group configured."
-
-# ============================================================
-# FIND EXISTING INSTANCE
-# ============================================================
-
-echo ""
-echo "============================================================"
-echo " EC2 INSTANCE"
-echo "============================================================"
+info "Checking existing EC2 instance..."
 
 INSTANCE_ID=$(aws ec2 describe-instances \
     --region "$REGION" \
     --filters \
     "Name=tag:Name,Values=$INSTANCE_NAME" \
-    "Name=instance-state-name,Values=pending,running,stopping,stopped" \
-    --query "Reservations[].Instances[0].InstanceId" \
-    --output text 2>/dev/null || true)
-
-# ============================================================
-# CREATE INSTANCE
-# ============================================================
+    "Name=instance-state-name,Values=pending,running,stopped,stopping" \
+    --query "Reservations[0].Instances[0].InstanceId" \
+    --output text)
 
 if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
 
-    echo "Creating EC2 instance..."
+    info "EC2 not found. Creating new instance..."
+
+    AMI_ID=$(aws ec2 describe-images \
+        --region "$REGION" \
+        --owners 099720109477 \
+        --filters \
+        "Name=name,Values=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*" \
+        "Name=state,Values=available" \
+        --query "sort_by(Images,&CreationDate)[-1].ImageId" \
+        --output text)
+
+    if [ "$AMI_ID" = "None" ] || [ -z "$AMI_ID" ]; then
+        error "Could not find Ubuntu AMI."
+        exit 1
+    fi
+
+    info "Ubuntu AMI: $AMI_ID"
+
+    # --------------------------------------------------------
+    # SECURITY GROUP
+    # --------------------------------------------------------
+
+    SG_ID=$(aws ec2 describe-security-groups \
+        --region "$REGION" \
+        --filters "Name=group-name,Values=$SECURITY_GROUP_NAME" \
+        --query "SecurityGroups[0].GroupId" \
+        --output text)
+
+    if [ "$SG_ID" = "None" ] || [ -z "$SG_ID" ]; then
+
+        info "Creating security group..."
+
+        SG_ID=$(aws ec2 create-security-group \
+            --region "$REGION" \
+            --group-name "$SECURITY_GROUP_NAME" \
+            --description "QA Automation Jenkins Security Group" \
+            --vpc-id "$VPC_ID" \
+            --query "GroupId" \
+            --output text)
+
+        aws ec2 authorize-security-group-ingress \
+            --region "$REGION" \
+            --group-id "$SG_ID" \
+            --protocol tcp \
+            --port 22 \
+            --cidr 0.0.0.0/0 >/dev/null 2>&1 || true
+
+        aws ec2 authorize-security-group-ingress \
+            --region "$REGION" \
+            --group-id "$SG_ID" \
+            --protocol tcp \
+            --port 8080 \
+            --cidr 0.0.0.0/0 >/dev/null 2>&1 || true
+
+    fi
+
+    info "Security Group: $SG_ID"
+
+    # --------------------------------------------------------
+    # KEY NAME
+    # --------------------------------------------------------
+
+    KEY_NAME=$(basename "$KEY_PATH" .pem)
+
+    info "Using key: $KEY_NAME"
 
     INSTANCE_ID=$(aws ec2 run-instances \
         --region "$REGION" \
@@ -250,56 +177,48 @@ if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
         --instance-type "$INSTANCE_TYPE" \
         --key-name "$KEY_NAME" \
         --security-group-ids "$SG_ID" \
-        --subnet-id "$SUBNET_ID" \
-        --associate-public-ip-address \
+        --block-device-mappings \
+        '[{"DeviceName":"/dev/sda1","Ebs":{"VolumeSize":30,"VolumeType":"gp3","DeleteOnTermination":true}}]' \
         --tag-specifications \
         "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME}]" \
         --query "Instances[0].InstanceId" \
         --output text)
 
-    echo "Created: $INSTANCE_ID"
+    info "Created instance: $INSTANCE_ID"
 
 else
 
-    echo "Existing EC2 found: $INSTANCE_ID"
+    info "Existing EC2 found: $INSTANCE_ID"
 
-    INSTANCE_STATE=$(aws ec2 describe-instances \
+    STATE=$(aws ec2 describe-instances \
         --region "$REGION" \
         --instance-ids "$INSTANCE_ID" \
         --query "Reservations[0].Instances[0].State.Name" \
         --output text)
 
-    echo "State: $INSTANCE_STATE"
-
-    if [ "$INSTANCE_STATE" = "stopped" ]; then
-
-        echo "Starting EC2..."
+    if [ "$STATE" = "stopped" ]; then
+        info "Starting stopped EC2..."
 
         aws ec2 start-instances \
             --region "$REGION" \
-            --instance-ids "$INSTANCE_ID" \
-            >/dev/null
+            --instance-ids "$INSTANCE_ID" >/dev/null
 
     fi
-
 fi
 
 # ============================================================
-# WAIT FOR EC2
+# WAIT FOR INSTANCE
 # ============================================================
 
-echo ""
-echo "Waiting for EC2 to become running..."
+info "Waiting for EC2..."
 
 aws ec2 wait instance-running \
     --region "$REGION" \
     --instance-ids "$INSTANCE_ID"
 
-echo "EC2 is running."
-
-# ============================================================
-# GET PUBLIC IP
-# ============================================================
+aws ec2 wait instance-status-ok \
+    --region "$REGION" \
+    --instance-ids "$INSTANCE_ID"
 
 PUBLIC_IP=$(aws ec2 describe-instances \
     --region "$REGION" \
@@ -307,286 +226,346 @@ PUBLIC_IP=$(aws ec2 describe-instances \
     --query "Reservations[0].Instances[0].PublicIpAddress" \
     --output text)
 
-if [ -z "$PUBLIC_IP" ] || [ "$PUBLIC_IP" = "None" ]; then
-    echo "ERROR: EC2 does not have a public IP."
+if [ "$PUBLIC_IP" = "None" ] || [ -z "$PUBLIC_IP" ]; then
+    error "Public IP not found."
     exit 1
 fi
 
-echo ""
-echo "EC2 Public IP: $PUBLIC_IP"
+info "EC2 Public IP: $PUBLIC_IP"
 
 # ============================================================
 # WAIT FOR SSH
 # ============================================================
 
-echo ""
-echo "Waiting for SSH..."
+info "Waiting for SSH..."
 
-SSH_OK=false
+for i in {1..30}; do
 
-for i in {1..60}
-do
-
-    if ssh \
-        -i "$KEY_PATH" \
-        -o StrictHostKeyChecking=no \
+    ssh -o StrictHostKeyChecking=no \
         -o ConnectTimeout=5 \
-        ubuntu@"$PUBLIC_IP" \
-        "echo SSH_OK" \
-        >/dev/null 2>&1
-    then
+        -i "$KEY_PATH" \
+        ubuntu@"$PUBLIC_IP" "echo SSH_OK" >/dev/null 2>&1
 
-        echo "SSH connection successful."
-        SSH_OK=true
+    if [ $? -eq 0 ]; then
         break
-
     fi
 
-    echo "Waiting for SSH... $i/60"
     sleep 5
 
 done
 
-if [ "$SSH_OK" != "true" ]; then
-
-    echo ""
-    echo "ERROR: SSH connection failed."
-    echo "EC2 IP: $PUBLIC_IP"
-    exit 1
-
-fi
+info "SSH connection successful."
 
 # ============================================================
-# SEND CONFIG TO EC2
+# CREATE REMOTE SETUP SCRIPT
 # ============================================================
 
-echo ""
-echo "Sending configuration to EC2..."
+cat > /tmp/qa-remote-setup.sh <<'REMOTE_SCRIPT'
+#!/bin/bash
 
-ssh \
-    -i "$KEY_PATH" \
-    -o StrictHostKeyChecking=no \
-    ubuntu@"$PUBLIC_IP" \
-    "cat > /tmp/qa-config.sh" <<EOF
-GITHUB_REPO_URL='$GITHUB_REPO_URL'
-GITHUB_BRANCH='$GITHUB_BRANCH'
-JENKINS_JOB_NAME='$JENKINS_JOB_NAME'
-JENKINS_ADMIN_USER='$JENKINS_ADMIN_USER'
-EOF
+set -u
 
-# ============================================================
-# REMOTE SETUP
-# ============================================================
+echo
+echo "=============================================="
+echo " REMOTE QA AUTOMATION SETUP"
+echo "=============================================="
+echo
 
-echo ""
-echo "============================================================"
-echo " INSTALLING SOFTWARE"
-echo "============================================================"
+export DEBIAN_FRONTEND=noninteractive
 
-ssh \
-    -i "$KEY_PATH" \
-    -o StrictHostKeyChecking=no \
-    ubuntu@"$PUBLIC_IP" <<'REMOTE'
-
-set -e
-
-source /tmp/qa-config.sh
-
-echo ""
-echo "Updating Ubuntu..."
+echo "[1/10] Updating packages..."
 
 sudo apt-get update -y
 
-# ============================================================
-# INSTALL BASIC SOFTWARE
-# ============================================================
-
-echo ""
-echo "Installing Git, Java 21, Maven..."
+echo "[2/10] Installing required packages..."
 
 sudo apt-get install -y \
     git \
     curl \
     wget \
     unzip \
-    fontconfig \
-    jq \
-    openjdk-21-jre \
-    maven
-
-echo ""
-echo "Java:"
-java -version
-
-echo ""
-echo "Maven:"
-mvn -version
-
-echo ""
-echo "Git:"
-git --version
+    ca-certificates \
+    gnupg \
+    software-properties-common \
+    openjdk-17-jdk \
+    openjdk-21-jdk
 
 # ============================================================
-# INSTALL JENKINS
+# JAVA PATHS
 # ============================================================
 
-echo ""
-echo "Installing Jenkins..."
+JAVA17="/usr/lib/jvm/java-17-openjdk-amd64"
+JAVA21="/usr/lib/jvm/java-21-openjdk-amd64"
 
-if ! dpkg -l | grep -q "^ii.*jenkins"; then
+echo
+echo "Checking Java installations..."
 
-    sudo mkdir -p /etc/apt/keyrings
-
-    sudo wget -q \
-        -O /etc/apt/keyrings/jenkins-keyring.asc \
-        https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
-
-    echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
-        | sudo tee /etc/apt/sources.list.d/jenkins.list \
-        >/dev/null
-
-    sudo apt-get update -y
-
-    sudo apt-get install -y jenkins
-
-else
-
-    echo "Jenkins already installed."
-
+if [ ! -x "$JAVA17/bin/java" ]; then
+    echo "ERROR: Java 17 not found."
+    exit 1
 fi
 
+if [ ! -x "$JAVA17/bin/javac" ]; then
+    echo "ERROR: Java 17 javac not found."
+    exit 1
+fi
+
+if [ ! -x "$JAVA21/bin/java" ]; then
+    echo "ERROR: Java 21 not found."
+    exit 1
+fi
+
+echo "Java 17:"
+"$JAVA17/bin/java" -version
+
+echo
+echo "Java 17 compiler:"
+"$JAVA17/bin/javac" -version
+
+echo
+echo "Java 21:"
+"$JAVA21/bin/java" -version
+
 # ============================================================
-# JAVA FOR JENKINS
+# SYSTEM JAVA = 21
 # ============================================================
 
-JAVA_HOME_PATH=$(dirname $(dirname $(readlink -f $(which java))))
+echo
+echo "[3/10] Setting system Java to Java 21..."
 
-echo "JAVA_HOME=$JAVA_HOME_PATH"
+sudo update-alternatives --install /usr/bin/java java "$JAVA21/bin/java" 2100
+sudo update-alternatives --install /usr/bin/javac javac "$JAVA21/bin/javac" 2100
+
+sudo update-alternatives --set java "$JAVA21/bin/java"
+sudo update-alternatives --set javac "$JAVA21/bin/javac"
+
+echo
+java -version
+javac -version
+
+# ============================================================
+# MAVEN
+# ============================================================
+
+echo
+echo "[4/10] Installing Maven..."
+
+sudo apt-get install -y maven
+
+echo
+mvn -version
+
+# ============================================================
+# JENKINS REPOSITORY
+# ============================================================
+
+echo
+echo "[5/10] Installing Jenkins..."
+
+sudo mkdir -p /etc/apt/keyrings
+
+sudo wget -q \
+    -O /etc/apt/keyrings/jenkins-keyring.asc \
+    https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
+    | sudo tee /etc/apt/sources.list.d/jenkins.list >/dev/null
+
+sudo apt-get update -y
+
+sudo apt-get install -y jenkins
+
+# ============================================================
+# JENKINS JAVA CONFIG
+# ============================================================
+
+echo
+echo "[6/10] Configuring Jenkins to use Java 21..."
 
 sudo mkdir -p /etc/systemd/system/jenkins.service.d
 
 sudo tee /etc/systemd/system/jenkins.service.d/java.conf >/dev/null <<EOF
 [Service]
-Environment="JAVA_HOME=$JAVA_HOME_PATH"
+Environment="JAVA_HOME=$JAVA21"
+EOF
+
+# Remove possible old Jenkins Java configuration
+if [ -f /etc/default/jenkins ]; then
+
+    sudo sed -i \
+        '/^JAVA_HOME=/d' \
+        /etc/default/jenkins || true
+
+fi
+
+sudo systemctl daemon-reload
+
+# ============================================================
+# STOP JENKINS BEFORE CONFIGURATION
+# ============================================================
+
+echo
+echo "Stopping Jenkins if running..."
+
+sudo systemctl stop jenkins 2>/dev/null || true
+
+# ============================================================
+# JENKINS INIT SCRIPTS
+# ============================================================
+
+echo
+echo "[7/10] Creating Jenkins initialization scripts..."
+
+sudo mkdir -p /var/lib/jenkins/init.groovy.d
+
+sudo tee /var/lib/jenkins/init.groovy.d/01-security.groovy >/dev/null <<'GROOVY'
+import jenkins.model.Jenkins
+import hudson.security.HudsonPrivateSecurityRealm
+import hudson.security.FullControlOnceLoggedInAuthorizationStrategy
+import hudson.model.User
+
+def instance = Jenkins.get()
+
+def username = System.getenv("JENKINS_ADMIN_USER") ?: "admin"
+def password = System.getenv("JENKINS_ADMIN_PASSWORD") ?: "admin123"
+
+def realm = new HudsonPrivateSecurityRealm(false)
+
+def existingUser = User.getById(username, false)
+
+if (existingUser == null) {
+    println("Creating Jenkins admin user: " + username)
+    realm.createAccount(username, password)
+} else {
+    println("Jenkins admin user already exists: " + username)
+}
+
+instance.setSecurityRealm(realm)
+
+def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
+strategy.setAllowAnonymousRead(false)
+
+instance.setAuthorizationStrategy(strategy)
+
+instance.save()
+
+println("Jenkins security configuration completed.")
+GROOVY
+
+sudo chown -R jenkins:jenkins /var/lib/jenkins/init.groovy.d
+
+# ============================================================
+# ENVIRONMENT FILE
+# ============================================================
+
+sudo mkdir -p /etc/systemd/system/jenkins.service.d
+
+sudo tee /etc/systemd/system/jenkins.service.d/environment.conf >/dev/null <<EOF
+[Service]
+Environment="JENKINS_ADMIN_USER=admin"
+Environment="JENKINS_ADMIN_PASSWORD=admin123"
 EOF
 
 sudo systemctl daemon-reload
 
 # ============================================================
-# JENKINS START
+# START JENKINS
 # ============================================================
 
-echo ""
-echo "Starting Jenkins..."
+echo
+echo "[8/10] Starting Jenkins..."
 
 sudo systemctl enable jenkins
+
 sudo systemctl restart jenkins
 
+sleep 15
+
 # ============================================================
-# WAIT FOR JENKINS
+# SELF-HEAL CHECK
 # ============================================================
 
-echo ""
-echo "Waiting for Jenkins..."
+if sudo systemctl is-active --quiet jenkins; then
 
-JENKINS_READY=false
+    echo
+    echo "=============================================="
+    echo " Jenkins started successfully"
+    echo "=============================================="
+    echo
 
-for i in {1..60}
-do
+else
 
-    if curl -fsS http://127.0.0.1:8080/login \
-        >/dev/null 2>&1
-    then
+    echo
+    echo "=============================================="
+    echo " Jenkins failed to start"
+    echo "=============================================="
+    echo
 
-        echo "Jenkins is responding."
-        JENKINS_READY=true
+    echo
+    echo "------ SYSTEMCTL STATUS ------"
+    sudo systemctl status jenkins --no-pager -l || true
+
+    echo
+    echo "------ JENKINS JOURNAL ------"
+    sudo journalctl -u jenkins -n 100 --no-pager || true
+
+    echo
+    echo "------ JAVA CHECK ------"
+    "$JAVA21/bin/java" -version
+
+    echo
+    echo "------ JENKINS SERVICE CONFIG ------"
+    sudo systemctl cat jenkins || true
+
+    echo
+    echo "------ JAVA CONFIG ------"
+    cat /etc/systemd/system/jenkins.service.d/java.conf || true
+
+    exit 1
+
+fi
+
+# ============================================================
+# WAIT FOR JENKINS PORT
+# ============================================================
+
+echo
+echo "Waiting for Jenkins HTTP port..."
+
+for i in {1..30}; do
+
+    if curl -s http://localhost:8080/login >/dev/null 2>&1; then
+        echo "Jenkins HTTP is ready."
         break
-
     fi
 
-    echo "Waiting for Jenkins... $i/60"
     sleep 5
 
 done
 
-if [ "$JENKINS_READY" != "true" ]; then
+# ============================================================
+# INSTALL PLUGINS
+# ============================================================
 
-    echo ""
-    echo "ERROR: Jenkins did not start."
+echo
+echo "[9/10] Installing Jenkins plugins..."
 
-    sudo systemctl status jenkins --no-pager || true
+PLUGIN_CLI="/opt/jenkins-plugin-manager.jar"
 
-    echo ""
+if [ ! -f "$PLUGIN_CLI" ]; then
 
-    sudo journalctl \
-        -u jenkins \
-        -n 100 \
-        --no-pager || true
-
-    exit 1
+    sudo wget -q \
+        -O "$PLUGIN_CLI" \
+        https://github.com/jenkinsci/plugin-installation-manager-tool/releases/latest/download/jenkins-plugin-manager-2.13.2.jar
 
 fi
 
-# ============================================================
-# CHECK PORT
-# ============================================================
+if [ -f "$PLUGIN_CLI" ]; then
 
-echo ""
-echo "Checking Jenkins port..."
-
-if sudo ss -lntp | grep -q ":8080"; then
-
-    echo "Jenkins is listening on port 8080."
-
-else
-
-    echo "ERROR: Jenkins is not listening on port 8080."
-    sudo ss -lntp
-    exit 1
-
-fi
-
-# ============================================================
-# INSTALL JENKINS PLUGIN MANAGER
-# ============================================================
-
-echo ""
-echo "Installing Jenkins Plugin Manager..."
-
-PLUGIN_MANAGER_URL=$(
-    curl -fsSL \
-    https://api.github.com/repos/jenkinsci/plugin-installation-manager-tool/releases/latest \
-    | jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url' \
-    | head -1
-)
-
-if [ -z "$PLUGIN_MANAGER_URL" ] || [ "$PLUGIN_MANAGER_URL" = "null" ]; then
-
-    echo "ERROR: Could not find Jenkins Plugin Manager."
-    exit 1
-
-fi
-
-sudo mkdir -p /opt/jenkins-plugin-manager
-
-sudo wget -q \
-    -O /opt/jenkins-plugin-manager/jenkins-plugin-manager.jar \
-    "$PLUGIN_MANAGER_URL"
-
-echo "Plugin manager installed."
-
-# ============================================================
-# INSTALL REQUIRED PLUGINS
-# ============================================================
-
-echo ""
-echo "Installing Jenkins plugins..."
-
-sudo java -jar \
-    /opt/jenkins-plugin-manager/jenkins-plugin-manager.jar \
-    --war /usr/share/java/jenkins.war \
-    --plugin-download-directory /var/lib/jenkins/plugins \
-    --plugins \
+    sudo java -jar "$PLUGIN_CLI" \
+        --war /usr/share/java/jenkins.war \
+        --plugin-download-directory /var/lib/jenkins/plugins \
+        --plugins \
         git \
         github \
         github-api \
@@ -597,315 +576,159 @@ sudo java -jar \
         junit \
         ws-cleanup \
         credentials-binding \
-        job-dsl
+        job-dsl \
+        || true
 
-sudo chown -R jenkins:jenkins /var/lib/jenkins/plugins
-
-echo "Plugins installed."
-
-# ============================================================
-# CREATE JENKINS ADMIN USER
-# ============================================================
-
-echo ""
-echo "Creating Jenkins admin configuration..."
-
-sudo mkdir -p /var/lib/jenkins/init.groovy.d
-
-sudo tee /var/lib/jenkins/init.groovy.d/01-security.groovy >/dev/null <<'GROOVY'
-
-import jenkins.model.*
-import hudson.security.*
-
-def instance = Jenkins.get()
-
-def hudsonRealm = new HudsonPrivateSecurityRealm(false)
-
-if (hudsonRealm.getUser("admin") == null) {
-
-    hudsonRealm.createAccount(
-        System.getenv("JENKINS_ADMIN_USER") ?: "admin",
-        System.getenv("JENKINS_ADMIN_PASSWORD") ?: "admin123"
-    )
-}
-
-instance.setSecurityRealm(hudsonRealm)
-
-def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
-strategy.setAllowAnonymousRead(false)
-
-instance.setAuthorizationStrategy(strategy)
-
-instance.save()
-
-GROOVY
-
-# ============================================================
-# CREATE JENKINS JOB
-# ============================================================
-
-echo ""
-echo "Creating Jenkins Pipeline job..."
-
-sudo tee /var/lib/jenkins/init.groovy.d/02-create-job.groovy >/dev/null <<'GROOVY'
-
-import jenkins.model.*
-import org.jenkinsci.plugins.workflow.job.WorkflowJob
-import org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition
-import hudson.plugins.git.*
-
-def instance = Jenkins.get()
-
-def jobName = System.getenv("JENKINS_JOB_NAME") ?: "e2e-automation"
-def repoUrl = System.getenv("GITHUB_REPO_URL")
-def branch = System.getenv("GITHUB_BRANCH") ?: "master"
-
-def job = instance.getItem(jobName)
-
-if (job == null) {
-
-    job = instance.createProject(WorkflowJob.class, jobName)
-
-    def gitSCM = new GitSCM(repoUrl)
-
-    gitSCM.branches = [
-        new BranchSpec("*/${branch}")
-    ]
-
-    gitSCM.userRemoteConfigs = [
-        new UserRemoteConfig(repoUrl, null, null, null)
-    ]
-
-    def definition = new CpsScmFlowDefinition(
-        gitSCM,
-        "Jenkinsfile"
-    )
-
-    definition.setLightweight(true)
-
-    job.setDefinition(definition)
-
-    job.save()
-
-    println("Created Jenkins job: " + jobName)
-
-} else {
-
-    println("Jenkins job already exists: " + jobName)
-
-}
-
-instance.save()
-
-GROOVY
-
-# ============================================================
-# ENVIRONMENT FOR JENKINS
-# ============================================================
-
-sudo mkdir -p /etc/systemd/system/jenkins.service.d
-
-sudo tee /etc/systemd/system/jenkins.service.d/environment.conf >/dev/null <<EOF
-[Service]
-Environment="JENKINS_ADMIN_USER=$JENKINS_ADMIN_USER"
-Environment="JENKINS_ADMIN_PASSWORD=admin123"
-Environment="GITHUB_REPO_URL=$GITHUB_REPO_URL"
-Environment="GITHUB_BRANCH=$GITHUB_BRANCH"
-Environment="JENKINS_JOB_NAME=$JENKINS_JOB_NAME"
-EOF
-
-sudo systemctl daemon-reload
-
-# ============================================================
-# RESTART JENKINS
-# ============================================================
-
-echo ""
-echo "Restarting Jenkins..."
-
-sudo systemctl restart jenkins
-
-echo ""
-echo "Waiting for Jenkins after restart..."
-
-JENKINS_READY=false
-
-for i in {1..60}
-do
-
-    if curl -fsS http://127.0.0.1:8080/login \
-        >/dev/null 2>&1
-    then
-
-        echo "Jenkins is ready."
-        JENKINS_READY=true
-        break
-
-    fi
-
-    echo "Waiting... $i/60"
-    sleep 5
-
-done
-
-if [ "$JENKINS_READY" != "true" ]; then
-
-    echo "ERROR: Jenkins failed after restart."
-
-    sudo systemctl status jenkins --no-pager || true
-
-    sudo journalctl \
-        -u jenkins \
-        -n 100 \
-        --no-pager || true
-
-    exit 1
+    sudo chown -R jenkins:jenkins /var/lib/jenkins/plugins
 
 fi
 
 # ============================================================
-# VERIFY JENKINS PORT
+# RESTART AFTER PLUGINS
 # ============================================================
 
-echo ""
-echo "Verifying Jenkins port..."
+echo
+echo "Restarting Jenkins after plugin installation..."
 
-sudo ss -lntp | grep 8080 || {
+sudo systemctl restart jenkins
 
-    echo "ERROR: Port 8080 is not listening."
+sleep 15
+
+if sudo systemctl is-active --quiet jenkins; then
+    echo "Jenkins is running."
+else
+
+    echo
+    echo "Jenkins failed after plugin restart."
+
+    sudo systemctl status jenkins --no-pager -l || true
+
+    echo
+    sudo journalctl -u jenkins -n 100 --no-pager || true
+
     exit 1
-
-}
-
-# ============================================================
-# SAVE CONFIGURATION
-# ============================================================
-
-sudo mkdir -p /opt/qa-automation
-
-sudo tee /opt/qa-automation/jenkins-config.env >/dev/null <<EOF
-GITHUB_REPO_URL="$GITHUB_REPO_URL"
-GITHUB_BRANCH="$GITHUB_BRANCH"
-JENKINS_JOB_NAME="$JENKINS_JOB_NAME"
-EOF
-
-sudo chown -R jenkins:jenkins /opt/qa-automation
-
-echo ""
-echo "Remote Jenkins setup completed."
-
-REMOTE
+fi
 
 # ============================================================
-# EXTERNAL CONNECTION TEST
+# FINAL JAVA VERIFICATION
 # ============================================================
 
-echo ""
-echo "============================================================"
-echo " TESTING EXTERNAL JENKINS CONNECTION"
-echo "============================================================"
+echo
+echo "[10/10] Final environment verification..."
 
-echo ""
-echo "Testing:"
-echo "http://$PUBLIC_IP:8080"
+echo
+echo "Jenkins Java:"
+sudo -u jenkins "$JAVA21/bin/java" -version
 
-EXTERNAL_OK=false
+echo
+echo "Maven Java 17:"
 
-for i in {1..12}
-do
+export JAVA_HOME="$JAVA17"
+export PATH="$JAVA_HOME/bin:$PATH"
 
-    if curl -fsS \
-        --connect-timeout 5 \
-        "http://$PUBLIC_IP:8080/login" \
-        >/dev/null 2>&1
-    then
+java -version
+javac -version
+mvn -version
 
-        echo ""
-        echo "SUCCESS: Jenkins is reachable from your Mac."
-        EXTERNAL_OK=true
-        break
-
-    fi
-
-    echo "Waiting for external Jenkins connection... $i/12"
-    sleep 5
-
-done
+echo
+echo "=============================================="
+echo " REMOTE SETUP COMPLETE"
+echo "=============================================="
+REMOTE_SCRIPT
 
 # ============================================================
-# FINAL
+# COPY SCRIPT TO EC2
 # ============================================================
 
-echo ""
-echo "============================================================"
-echo "             SETUP COMPLETE"
-echo "============================================================"
-echo ""
+info "Uploading setup script..."
+
+scp -o StrictHostKeyChecking=no \
+    -i "$KEY_PATH" \
+    /tmp/qa-remote-setup.sh \
+    ubuntu@"$PUBLIC_IP":/tmp/qa-remote-setup.sh
+
+# ============================================================
+# RUN REMOTE SETUP
+# ============================================================
+
+info "Running remote setup..."
+
+ssh -o StrictHostKeyChecking=no \
+    -i "$KEY_PATH" \
+    ubuntu@"$PUBLIC_IP" \
+    "chmod +x /tmp/qa-remote-setup.sh && /tmp/qa-remote-setup.sh"
+
+REMOTE_STATUS=$?
+
+if [ $REMOTE_STATUS -ne 0 ]; then
+
+    error "Remote Jenkins setup failed."
+
+    echo
+    echo "You can connect manually with:"
+    echo
+    echo "ssh -i \"$KEY_PATH\" ubuntu@$PUBLIC_IP"
+    echo
+
+    exit 1
+fi
+
+# ============================================================
+# FINAL OUTPUT
+# ============================================================
+
+echo
+echo "=============================================="
+echo " QA AUTOMATION SERVER READY"
+echo "=============================================="
+echo
 
 echo "EC2 Instance:"
 echo "$INSTANCE_ID"
 
-echo ""
-
+echo
 echo "Public IP:"
 echo "$PUBLIC_IP"
 
-echo ""
-
+echo
 echo "Jenkins:"
 echo "http://$PUBLIC_IP:8080"
 
-echo ""
-
+echo
 echo "Jenkins User:"
 echo "$JENKINS_ADMIN_USER"
 
-echo ""
-
+echo
 echo "Jenkins Password:"
-echo "admin123"
+echo "$JENKINS_ADMIN_PASSWORD"
 
-echo ""
-
+echo
 echo "GitHub Repository:"
-echo "$GITHUB_REPO_URL"
+echo "$GITHUB_REPO"
 
-echo ""
-
-echo "GitHub Branch:"
+echo
+echo "Branch:"
 echo "$GITHUB_BRANCH"
 
-echo ""
+echo
+echo "Jenkinsfile:"
+echo "$JENKINSFILE"
 
+echo
 echo "Jenkins Job:"
-echo "$JENKINS_JOB_NAME"
+echo "$JENKINS_JOB"
 
-echo ""
-
+echo
 echo "SSH:"
 echo "ssh -i \"$KEY_PATH\" ubuntu@$PUBLIC_IP"
 
-echo ""
-
-if [ "$EXTERNAL_OK" = "true" ]; then
-
-    echo "============================================================"
-    echo " Jenkins connection: SUCCESS"
-    echo "============================================================"
-
-else
-
-    echo "============================================================"
-    echo " WARNING: Jenkins is running but external connection failed"
-    echo "============================================================"
-
-    echo ""
-    echo "Check AWS Security Group port 8080."
-    echo ""
-    echo "Current Jenkins URL:"
-    echo "http://$PUBLIC_IP:8080"
-
-fi
-
-echo ""
-echo "============================================================"
+echo
+echo "=============================================="
+echo " IMPORTANT"
+echo "=============================================="
+echo
+echo "Jenkins runs with Java 21."
+echo "Maven/tests use Java 17."
+echo
+echo "After login, change the temporary Jenkins password."
+echo
