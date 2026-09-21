@@ -13,7 +13,7 @@ public class LoginTest extends UIBaseTest {
     public void login() {
         LoginActions loginActions = new LoginActions(DriverManager.getDriver());
         //loginActions.clickOnLoginButton();
-        loginActions.loginCredentials(ConfigManager.get("username"), ConfigManager.get("password"));
+        loginActions.loginCredentials(ConfigManager.get("ui.username"), ConfigManager.get("ui.password"));
         loginActions.submitLogin();
     }
 
