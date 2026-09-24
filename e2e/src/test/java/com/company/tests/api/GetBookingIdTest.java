@@ -3,8 +3,10 @@ package com.company.tests.api;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.company.framework.models.request.BookingDates;
 import com.company.framework.models.request.BookingRequest;
+import com.company.framework.models.response.BookingResponse;
+import com.company.framework.api.validations.BookingValidation;
+import com.company.framework.utils.JSONUtils;
 import com.company.tests.base.APIBaseTest;
 
 import io.restassured.response.Response;
@@ -13,9 +15,8 @@ public class GetBookingIdTest extends APIBaseTest {
 
     @Test
     public void getBookingId() {
-        BookingRequest bookingRequest = new BookingRequest(
-                "Jim", "Brown", 111, true,
-                new BookingDates("2026-01-01", "2026-01-05"), "Breakfast");
+        BookingRequest bookingRequest = JSONUtils.fromResource(
+            "testdata/booking-request.json", BookingRequest.class);
 
         Response createBookingResponse = bookingService.createBooking(bookingRequest);
         Assert.assertEquals(createBookingResponse.getStatusCode(), 200);
@@ -23,6 +24,13 @@ public class GetBookingIdTest extends APIBaseTest {
         int bookingId = createBookingResponse.jsonPath().getInt("bookingid");
         response = bookingService.getBooking(bookingId);
         Assert.assertEquals(response.getStatusCode(), 200);
+
+        BookingResponse bookingResponse = JSONUtils.fromJson(
+            response.asString(), BookingResponse.class);
+
+        BookingValidation.validateBookingResponse(bookingResponse, bookingRequest, bookingId);
+
+        System.out.println("Validated booking response: " + JSONUtils.toJson(bookingResponse));
     }
 
 }

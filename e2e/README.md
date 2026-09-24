@@ -22,6 +22,7 @@ Maven -> testng.xml -> TestNG listeners
 | `src/main/java/.../api/services` | Endpoint-level business operations such as booking and authentication |
 | `src/main/java/.../api/specifications` | Shared base URI, headers, and response specifications |
 | `src/main/java/.../api/authentication` | API token creation, storage, and cleanup |
+| `src/main/java/.../api/validations` | API response assertions and contract validation |
 | `src/main/java/.../models` | Typed request and response payload objects; Lombok generates model accessors and constructors |
 | `src/main/java/.../ui/driver` | Browser selection, options, WebDriver creation, and thread-safe storage |
 | `src/main/java/.../ui/pages` | Page locators and common Selenium interactions |
@@ -52,6 +53,21 @@ Response fetched = bookingService.getBooking(created.jsonPath().getInt("bookingi
 `ApiClient` centralizes `GET`, `POST`, `PUT`, and `DELETE`, applies common
 specifications, logs method/status, and supports the Restful Booker token cookie
 for update and delete operations.
+
+### JSON test data
+
+API payloads can be stored under `src/test/resources/testdata` and converted to
+typed models with Jackson through `JSONUtils`:
+
+```java
+BookingRequest request = JSONUtils.fromResource(
+	"testdata/booking-request.json", BookingRequest.class);
+
+String json = JSONUtils.toJson(request);
+```
+
+`fromJson` deserializes a JSON string, `fromResource` deserializes a classpath
+resource, and `toJson` serializes a Java object into JSON.
 
 ### Run tests
 
