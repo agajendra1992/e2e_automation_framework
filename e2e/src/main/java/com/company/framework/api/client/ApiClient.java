@@ -1,61 +1,58 @@
-// package com.company.framework.api.client;
-// public class ApiClient {
-// <<<<<<< Updated upstream
-    
-// =======
+package com.company.framework.api.client;
 
-//     protected void AppClient() {
+import static io.restassured.RestAssured.given;
 
-//     }
+import com.company.framework.api.specifications.RequestSpec;
 
-//     public Response get(String uri) {
-//         return given()
-//                  .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
-//                 .when()
-//                 .get(uri)
-//                 .then()
-//                 .spec(ResponseSpec.getResponseSpecification())
-//                 .extract().response();
-//     }          
-                
-//     public Response get(String uri,String pathParam) {
-//         return given()
-//                  .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
-//                  .param("id", pathParam)
-//                 .when()
-//                 .get(uri)
-//                 .then()
-//                 .spec(ResponseSpec.getResponseSpecification())
-//                 .extract().response();
-                
-    
-//     }
+import io.restassured.response.Response;
 
-//     public Response post(String uri, Object requestBody) {
-//         return given()
-//                 .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
-//                 .body(requestBody)
-//                 .when()
-//                 .post(uri)
-//                 .then()
-//                 .spec(ResponseSpec.getResponseSpecification())
-//                 .extract()
-//                 .response();
+public class ApiClient {
 
-//     }
+    public Response get(String uri) {
+        return given()
+                .spec(RequestSpec.getRequestSpecification(
+                        RequestSpec.headerMap("content-type", "application/json")))
+                .when()
+                .get(uri)
+                .then()
+                .extract()
+                .response();
+    }
 
-//     public Response post(String uri, String pathParam, Object requestBody) {
-//         return given()
-//                 .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
-//                 .pathParam("id", pathParam)
-//                 .body(requestBody)
-//                 .when()
-//                 .post(uri)
-//                 .then()
-//                 .spec(ResponseSpec.getResponseSpecification())
-//                 .extract()
-//                 .response();
+    public Response get(String uri, String pathParam) {
+        return given()
+                .spec(RequestSpec.getRequestSpecification(
+                        RequestSpec.headerMap("content-type", "application/json")))
+                .pathParam("id", pathParam)
+                .when()
+                .get(uri)
+                .then()
+                .extract()
+                .response();
+    }
 
-//     }
-// >>>>>>> Stashed changes
-// }
+    public Response post(String uri, Object requestBody) {
+        return given()
+                .spec(RequestSpec.getRequestSpecification(
+                        RequestSpec.headerMap("content-type", "application/json")))
+                .body(requestBody)
+                .when()
+                .post(uri)
+                .then()
+                .extract()
+                .response();
+    }
+
+    public Response post(String uri, String pathParam, Object requestBody) {
+        return given()
+                .spec(RequestSpec.getRequestSpecification(
+                        RequestSpec.headerMap("content-type", "application/json")))
+                .pathParam("id", pathParam)
+                .body(requestBody)
+                .when()
+                .post(uri)
+                .then()
+                .extract()
+                .response();
+    }
+}
