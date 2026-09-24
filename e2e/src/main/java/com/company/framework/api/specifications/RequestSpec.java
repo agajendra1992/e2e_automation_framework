@@ -16,10 +16,12 @@ public final class RequestSpec {
     public static io.restassured.specification.RequestSpecification getRequestSpecification(
             Map<String, String> headerMap) { 
             return new RequestSpecBuilder().setBaseUri(ConfigManager.get("api.base.url"))
-                    .addHeaders(headerMap).build();
+                .addHeaders(headerMap)
+                .setRelaxedHTTPSValidation()
+                .build();
         
     }
-
+    
     public static Map<String, String> headerMap(String key, String value) {
         HashMap<String, String> headerHashMap = new HashMap<>();
         headerHashMap.put(key, value);

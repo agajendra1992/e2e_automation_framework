@@ -7,25 +7,33 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 public class BrowserOptions {
 
     BrowserOptions() {
-
     }
 
     public ChromeOptions chromeOptions(boolean headless) {
         ChromeOptions options = new ChromeOptions();
+        String chromeBinary = System.getProperty("chrome.binary", System.getenv("CHROME_BIN"));
+        if (chromeBinary != null && !chromeBinary.isBlank()) {
+            options.setBinary(chromeBinary);
+        }
         if (headless) {
             options.addArguments("--headless=new");
         }
-        options.addArguments("--start-maximized");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--disable-software-rasterizer");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--window-size=1920,1080");
         options.addArguments("--disable-notifications");
+        options.addArguments("--user-data-dir=/tmp/jenkins-chrome");
         return options;
     }
 
     public FirefoxOptions firefoxOptions(boolean headless) {
         FirefoxOptions options = new FirefoxOptions();
         if (headless) {
-            options.addArguments("--headless=new");
+            options.addArguments("--headless");
         }
-
         return options;
     }
 
@@ -38,5 +46,4 @@ public class BrowserOptions {
         options.addArguments("--disable-notifications");
         return options;
     }
-
 }

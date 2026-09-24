@@ -57,6 +57,9 @@
         <!-- Maven Surefire -->
         <surefire.version>3.5.3</surefire.version>
 
+        <!-- TestNG suite; Docker API runs override this with testng-api.xml -->
+        <testng.suite>testng.xml</testng.suite>
+
     </properties>
 
 
@@ -119,7 +122,6 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
-            <scope>test</scope>
         </dependency>
 
 
@@ -257,7 +259,7 @@
 
                     <suiteXmlFiles>
                         <suiteXmlFile>
-                            testng.xml
+                            ${testng.suite}
                         </suiteXmlFile>
                     </suiteXmlFiles>
 

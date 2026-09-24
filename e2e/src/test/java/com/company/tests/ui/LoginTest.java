@@ -14,11 +14,9 @@ public class LoginTest extends UIBaseTest {
     @Test
     public void login() {
         LoginActions loginActions = new LoginActions(DriverManager.getDriver());
-        //loginActions.clickOnLoginButton();
-        loginActions.loginCredentials(ConfigManager.get("username"), ConfigManager.get("password"));
+        loginActions.loginCredentials(ConfigManager.get("ui.username"), ConfigManager.get("ui.password"));
         loginActions.submitLogin();
         LoginValidation loginValidation = new LoginValidation(DriverManager.getDriver());
         Assert.assertEquals(loginValidation.verifyHomePageHeaderIsDisplayed(), true);
     }
-
 }
