@@ -1,5 +1,6 @@
 package com.company.tests.ui;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.company.framework.config.ConfigManager;
@@ -16,6 +17,10 @@ public class LoginTest extends UIBaseTest {
         loginActions.loginCredentials(ConfigManager.get("ui.username"), ConfigManager.get("ui.password"));
         loginActions.submitLogin();
         LoginValidation loginValidation = new LoginValidation(DriverManager.getDriver());
+<<<<<<< HEAD
         org.testng.Assert.assertTrue(loginValidation.verifyHomePageHeaderIsDisplayed());
+=======
+        Assert.assertEquals(loginValidation.verifyHomePageHeaderIsDisplayed(), true);
+>>>>>>> origin/master
     }
 }

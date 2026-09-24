@@ -19,7 +19,10 @@ public final class RequestSpec {
                     .addHeaders(headerMap).build();
         
     }
+<<<<<<< HEAD
     
+=======
+>>>>>>> origin/master
 
     public static Map<String, String> headerMap(String key, String value) {
         HashMap<String, String> headerHashMap = new HashMap<>();

@@ -1,10 +1,19 @@
 package com.company.framework.api.client;
 
+<<<<<<< HEAD
 import static io.restassured.RestAssured.given;
+=======
+import io.restassured.response.Response;
+
+
+import static io.restassured.RestAssured.*;
+
+>>>>>>> origin/master
 
 import com.company.framework.api.specifications.RequestSpec;
 import com.company.framework.api.specifications.ResponseSpec;
 
+<<<<<<< HEAD
 import io.restassured.response.Response;
 
 public class ApiClient {
@@ -13,10 +22,22 @@ public class ApiClient {
         return given()
                 .spec(RequestSpec.getRequestSpecification(
                         RequestSpec.headerMap("content-type", "application/json")))
+=======
+public class ApiClient {
+
+    protected void AppClient() {
+
+    }
+
+    public Response get(String uri) {
+        return given()
+                 .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
+>>>>>>> origin/master
                 .when()
                 .get(uri)
                 .then()
                 .spec(ResponseSpec.getResponseSpecification())
+<<<<<<< HEAD
                 .extract()
                 .response();
     }
@@ -52,6 +73,16 @@ public class ApiClient {
                 .baseUri(baseUri)
                 .spec(RequestSpec.getRequestSpecification(
                         RequestSpec.headerMap("content-type", "application/json")))
+=======
+                .extract().response();
+                
+    }
+
+    public Response post(String url, String uri, Object requestBody) {
+        return given()
+                .baseUri(uri)
+                .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
+>>>>>>> origin/master
                 .body(requestBody)
                 .when()
                 .post(url)
@@ -59,6 +90,7 @@ public class ApiClient {
                 .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
+<<<<<<< HEAD
     }
 
     public Response post(String uri, String pathParam, Object requestBody) {
@@ -73,5 +105,8 @@ public class ApiClient {
                 .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
+=======
+
+>>>>>>> origin/master
     }
 }

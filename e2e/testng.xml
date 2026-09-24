@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 <suite name="E2E Test Suite">
+<<<<<<< HEAD
     <test name="E2E Tests">
         <classes>
             <!-- class name="com.company.tests.base.ConfigTest"/ -->
@@ -9,4 +10,15 @@
             <class name="com.company.tests.api.GetUserTest"/>
         </classes>
     </test>
+=======
+	<test name="E2E Tests">
+		<classes>
+			<!--class Add TestNG test classes here. -->
+			<!-- <class name="com.company.tests.base.ConfigTest"></class> -->
+			<!-- <class name="com.company.tests.base.DriverTest"></class> -->
+			<class name="com.company.tests.ui.LoginTest"></class>
+			<class name="com.company.tests.api.GetUserTest"></class>
+		</classes>
+	</test>
+>>>>>>> origin/master
 </suite>
