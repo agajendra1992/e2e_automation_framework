@@ -1,69 +1,130 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(name: 'SUITE', choices: ['api', 'ui'], description: 'Docker suite to build and execute')
+        string(name: 'ENVIRONMENT', defaultValue: 'qa', description: 'Framework environment')
+        string(name: 'IMAGE_REPOSITORY', defaultValue: 'your-docker-user/e2e-suite', description: 'Docker Hub repository')
+        string(name: 'EC2_HOST', description: 'EC2 public DNS name or IP')
+        string(name: 'EC2_USER', defaultValue: 'ubuntu', description: 'EC2 SSH user')
+    }
+
     environment {
-        JAVA17_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+        IMAGE = "${params.IMAGE_REPOSITORY}:${BUILD_NUMBER}"
+        LATEST_IMAGE = "${params.IMAGE_REPOSITORY}:latest"
+        REMOTE_DIR = "/opt/e2e-${params.SUITE}-suite"
     }
 
     stages {
+        stage('Verify Tools') {
+            steps {
+                sh 'java -version && mvn -version && docker --version && ssh -V'
+            }
+        }
 
-        stage('Verify Java') {
+        stage('Build Docker Image') {
             steps {
                 sh '''
-                    export JAVA_HOME=$JAVA17_HOME
-                    export PATH=$JAVA_HOME/bin:$PATH
-
-                    echo "JAVA_HOME=$JAVA_HOME"
-                    java -version
-                    javac -version
-                    mvn -version
+                    docker build \
+                        --file Dockerfile.${SUITE} \
+                        --tag ${IMAGE} \
+                        --tag ${LATEST_IMAGE} \
+                        .
                 '''
             }
         }
 
-        stage('Maven Clean') {
+        stage('Push Docker Image') {
             steps {
-                dir('e2e') {
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-registry',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
                     sh '''
-                        export JAVA_HOME=$JAVA17_HOME
-                        export PATH=$JAVA_HOME/bin:$PATH
-                        mvn clean
+                        set +x
+                        echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+                        docker push "${IMAGE}"
+                        docker push "${LATEST_IMAGE}"
+                        docker logout
                     '''
                 }
             }
         }
 
-         stage('Compile Tests') {
+        stage('Run Image On EC2') {
             steps {
-                dir('e2e') {
-                    sh '''
-                        export JAVA_HOME=$JAVA17_HOME
-                        export PATH=$JAVA_HOME/bin:$PATH
-                        mvn compile
-                    '''
+                sshagent(credentials: ['ec2-ssh-key']) {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'docker-registry',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )]) {
+                        script {
+                            int remoteExitCode = sh(returnStatus: true, script: '''
+                                set +e
+                                ssh -o StrictHostKeyChecking=accept-new "${EC2_USER}@${EC2_HOST}" bash -s remote-run \
+                                    "${IMAGE}" "${REMOTE_DIR}" "${ENVIRONMENT}" "${SUITE}" "${DOCKER_USERNAME}" "${DOCKER_PASSWORD}" <<'REMOTE_SCRIPT'
+                                set -e
+                                IMAGE="$1"
+                                REMOTE_DIR="$2"
+                                ENVIRONMENT="$3"
+                                SUITE="$4"
+                                DOCKER_USERNAME="$5"
+                                DOCKER_PASSWORD="$6"
+
+                                if ! command -v docker >/dev/null 2>&1; then
+                                    sudo apt-get update -y
+                                    sudo apt-get install -y docker.io
+                                    sudo systemctl enable --now docker
+                                fi
+
+                                mkdir -p "$REMOTE_DIR/results"
+                                echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+                                docker pull "$IMAGE"
+                                docker rm --force "e2e-${SUITE}-suite" >/dev/null 2>&1 || true
+
+                                set +e
+                                docker run --name "e2e-${SUITE}-suite" \\
+                                    --env "env=$ENVIRONMENT" \\
+                                    --volume "$REMOTE_DIR/results:/workspace/target" \\
+                                    "$IMAGE" "-Denv=$ENVIRONMENT"
+                                EXIT_CODE=$?
+                                set -e
+
+                                docker logout >/dev/null 2>&1 || true
+                                docker rm "e2e-${SUITE}-suite" >/dev/null 2>&1 || true
+                                exit "$EXIT_CODE"
+                                REMOTE_SCRIPT
+                                exit $?
+                            ''')
+
+                            sh '''
+                                mkdir -p target/ec2-results
+                                scp -o StrictHostKeyChecking=accept-new -r \
+                                    "${EC2_USER}@${EC2_HOST}:${REMOTE_DIR}/results/." target/ec2-results/ || true
+                            '''
+
+                            if (remoteExitCode != 0) {
+                                error("${params.SUITE} Docker tests failed on EC2")
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('Publish Results') {
             steps {
-                dir('e2e') {
-                    sh '''
-                        export JAVA_HOME=$JAVA17_HOME
-                        export PATH=$JAVA_HOME/bin:$PATH
-                        mvn test
-                    '''
-                }
+                junit allowEmptyResults: true, testResults: 'target/ec2-results/surefire-reports/*.xml'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'target/ec2-results/**'
             }
         }
+    }
 
-        stage('Test Results') {
-            steps {
-                dir('e2e') {
-                    junit allowEmptyResults: true,
-                          testResults: 'target/surefire-reports/*.xml'
-                }
-            }
+    post {
+        always {
+            sh 'docker image prune --force || true'
         }
     }
 }

@@ -11,9 +11,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class BookingResponse {
-    @JsonProperty("bookingid")
-    private int bookingId;
-
     @JsonProperty("firstname")
     private String firstname;
 

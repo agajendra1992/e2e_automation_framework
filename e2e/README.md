@@ -69,6 +69,18 @@ String json = JSONUtils.toJson(request);
 `fromJson` deserializes a JSON string, `fromResource` deserializes a classpath
 resource, and `toJson` serializes a Java object into JSON.
 
+### Excel-style TestNG DataProvider
+
+`ProductSearchTest` uses the `productData` DataProvider to execute one UI test
+per row from `src/test/resources/testdata/product-search-data.csv`. The CSV is
+Excel-compatible and contains the columns `productName` and `expectedAvailable`.
+`ExcelUtils` also supports native `.xlsx` files through `readSheet(resource, sheet)`
+when a workbook is supplied:
+
+```java
+return ExcelUtils.readSheet("testdata/product-search-data.xlsx", "Products");
+```
+
 ### Run tests
 
 ```bash
@@ -125,6 +137,34 @@ The API and UI suites can therefore be run independently:
 mvn clean test -Dtestng.suite=testng-api.xml -Denv=qa
 mvn clean test -Dtestng.suite=testng-ui.xml -Denv=qa -Dbrowser=chrome
 ```
+
+### Jenkins image pipeline to EC2
+
+`JenkinsFile` builds and tags the selected Docker image, pushes both the build
+number and `latest` tags to Docker Hub, pulls the immutable build tag on EC2,
+runs the container, downloads the reports, and fails the Jenkins build when the
+remote suite fails.
+
+Configure these Jenkins credentials before creating the pipeline job:
+
+| Credential ID | Type | Purpose |
+| --- | --- | --- |
+| `docker-registry` | Username with password/token | Push and pull the Docker image |
+| `ec2-ssh-key` | SSH Username with private key | Connect to the EC2 instance |
+
+Create a Pipeline job using `JenkinsFile`, then provide these parameters:
+
+- `SUITE`: `api` or `ui`
+- `ENVIRONMENT`: `qa` or `dev`
+- `IMAGE_REPOSITORY`: Docker registry repository, for example `myuser/e2e-suite`
+- `EC2_HOST`: EC2 public DNS name or IP address
+- `EC2_USER`: usually `ubuntu`
+
+The Jenkins agent needs Docker, Maven, Java, SSH, and SCP. The EC2 instance
+needs network access to the registry and the application endpoints. The
+pipeline installs Docker on Ubuntu EC2 when it is missing, runs the image under
+`/opt/e2e-api-suite` or `/opt/e2e-ui-suite`, and archives the results in the
+Jenkins build under `target/ec2-results`.
 
 ### Outputs
 

@@ -8,6 +8,7 @@
     <test name="UI Tests">
         <classes>
             <class name="com.company.tests.ui.LoginTest" />
+            <class name="com.company.tests.ui.ProductSearchTest" />
         </classes>
     </test>
 </suite>

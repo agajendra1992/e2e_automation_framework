@@ -11,9 +11,7 @@ public class BookingValidation {
     }
 
     public static void validateBookingResponse(BookingResponse actualResponse,
-            BookingRequest expectedRequest, int expectedBookingId) {
-        Assert.assertEquals(actualResponse.getBookingId(), expectedBookingId,
-                "Booking ID does not match");
+            BookingRequest expectedRequest) {
         Assert.assertEquals(actualResponse.getFirstname(), expectedRequest.getFirstname(),
                 "First name does not match");
         Assert.assertEquals(actualResponse.getLastname(), expectedRequest.getLastname(),

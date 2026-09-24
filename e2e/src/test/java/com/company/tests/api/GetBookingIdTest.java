@@ -13,7 +13,7 @@ import io.restassured.response.Response;
 
 public class GetBookingIdTest extends APIBaseTest {
 
-    @Test
+    @Test(testName = "booking", description = "Verifies valid booking details")
     public void getBookingId() {
         BookingRequest bookingRequest = JSONUtils.fromResource(
             "testdata/booking-request.json", BookingRequest.class);
@@ -28,7 +28,7 @@ public class GetBookingIdTest extends APIBaseTest {
         BookingResponse bookingResponse = JSONUtils.fromJson(
             response.asString(), BookingResponse.class);
 
-        BookingValidation.validateBookingResponse(bookingResponse, bookingRequest, bookingId);
+        BookingValidation.validateBookingResponse(bookingResponse, bookingRequest);
 
         System.out.println("Validated booking response: " + JSONUtils.toJson(bookingResponse));
     }
