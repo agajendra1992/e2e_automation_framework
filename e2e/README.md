@@ -22,7 +22,7 @@ Maven -> testng.xml -> TestNG listeners
 | `src/main/java/.../api/services` | Endpoint-level business operations such as booking and authentication |
 | `src/main/java/.../api/specifications` | Shared base URI, headers, and response specifications |
 | `src/main/java/.../api/authentication` | API token creation, storage, and cleanup |
-| `src/main/java/.../models` | Typed request and response payload objects |
+| `src/main/java/.../models` | Typed request and response payload objects; Lombok generates model accessors and constructors |
 | `src/main/java/.../ui/driver` | Browser selection, options, WebDriver creation, and thread-safe storage |
 | `src/main/java/.../ui/pages` | Page locators and common Selenium interactions |
 | `src/main/java/.../ui/actions` | User workflows such as login |
@@ -37,7 +37,8 @@ Maven -> testng.xml -> TestNG listeners
 
 ### API design
 
-Tests call services, not raw URLs:
+Tests call services, not raw URLs. Lombok keeps the model classes concise while
+still providing getters, setters, and no-argument/all-argument constructors:
 
 ```java
 BookingRequest request = new BookingRequest(

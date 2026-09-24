@@ -1,7 +1,15 @@
 package com.company.framework.models.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class BookingRequest {
     @JsonProperty("firstname")
     private String firstname;
@@ -21,40 +29,4 @@ public class BookingRequest {
     @JsonProperty("additionalneeds")
     private String additionalneeds;
 
-    public BookingRequest() {
-    }
-
-    public BookingRequest(String firstname, String lastname, int totalprice, boolean depositpaid,
-            BookingDates bookingdates, String additionalneeds) {
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.totalprice = totalprice;
-        this.depositpaid = depositpaid;
-        this.bookingdates = bookingdates;
-        this.additionalneeds = additionalneeds;
-    }
-
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public int getTotalprice() {
-        return totalprice;
-    }
-
-    public boolean isDepositpaid() {
-        return depositpaid;
-    }
-
-    public BookingDates getBookingdates() {
-        return bookingdates;
-    }
-
-    public String getAdditionalneeds() {
-        return additionalneeds;
-    }
 }

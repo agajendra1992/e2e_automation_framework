@@ -1,7 +1,15 @@
 package com.company.framework.models.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class BookingDates {
     @JsonProperty("checkin")
     private String checkin;
@@ -9,27 +17,4 @@ public class BookingDates {
     @JsonProperty("checkout")
     private String checkout;
 
-    public BookingDates() {
-    }
-
-    public BookingDates(String checkin, String checkout) {
-        this.checkin = checkin;
-        this.checkout = checkout;
-    }
-
-    public String getCheckin() {
-        return checkin;
-    }
-
-    public String getCheckout() {
-        return checkout;
-    }
-
-    public void setCheckin(String checkin) {
-        this.checkin = checkin;
-    }
-
-    public void setCheckout(String checkout) {
-        this.checkout = checkout;
-    }
 }
