@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="API Test Suite">
+    <listeners>
+        <listener class-name="com.company.framework.listeners.TestListener" />
+        <listener class-name="com.company.framework.listeners.AnnotationTransfomer" />
+    </listeners>
+    <test name="API Tests">
+        <classes>
+            <class name="com.company.tests.api.GetBookingIdTest" />
+        </classes>
+    </test>
+</suite>

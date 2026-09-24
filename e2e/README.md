@@ -62,6 +62,53 @@ Use `-Denv=dev` for the development properties file and set `-Dbrowser=firefox`
 or `-Dbrowser=edge` when needed. Headless execution is controlled by the selected
 environment property.
 
+### API Docker image and EC2 deployment
+
+The API-only suite is defined in `testng-api.xml` and packaged by `Dockerfile.api`.
+It does not start Selenium or run the UI tests.
+
+Build and run the image locally:
+
+```bash
+docker build -f Dockerfile.api -t e2e-api-suite:latest .
+docker run --rm -v "$PWD/target:/workspace/target" \
+	e2e-api-suite:latest -Denv=qa
+```
+
+Deploy the same image to an Ubuntu EC2 instance over SSH:
+
+```bash
+EC2_HOST=ec2-xx-xx-xx-xx.compute-1.amazonaws.com \
+KEY_PATH=/path/to/qa-automation-key.pem \
+ENVIRONMENT=qa \
+bash deploy-api-ec2.sh
+```
+
+The deployment script builds the image locally, transfers it to EC2, installs
+Docker if necessary, runs the API suite, and stores reports and logs under
+`/opt/e2e-api-suite/results` on the instance. Do not commit private keys or AWS
+credentials; use SSH keys and an instance role or environment-based AWS
+credentials outside the repository.
+
+### UI suite and Docker image
+
+The UI-only suite is defined in `testng-ui.xml`. `Dockerfile.ui` installs
+Chromium and ChromiumDriver, runs the existing headless Selenium flow, and
+stores the same reports and logs in the mounted `target` directory.
+
+```bash
+docker build -f Dockerfile.ui -t e2e-ui-suite:latest .
+docker run --rm -v "$PWD/target:/workspace/target" \
+	e2e-ui-suite:latest -Denv=qa
+```
+
+The API and UI suites can therefore be run independently:
+
+```bash
+mvn clean test -Dtestng.suite=testng-api.xml -Denv=qa
+mvn clean test -Dtestng.suite=testng-ui.xml -Denv=qa -Dbrowser=chrome
+```
+
 ### Outputs
 
 - Extent report: `target/extent-report/extent-report.html`

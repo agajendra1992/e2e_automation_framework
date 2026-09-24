@@ -1,0 +1,22 @@
+FROM maven:3.9.11-eclipse-temurin-17
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends chromium chromium-driver \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+COPY pom.xml testng-ui.xml ./
+COPY src ./src
+
+RUN mvn -B -ntp -DskipTests -Dtestng.suite=testng-ui.xml dependency:go-offline
+
+ENV ENVIRONMENT=qa
+ENV BROWSER=chrome
+ENV CHROME_BIN=/usr/bin/chromium
+ENV MAVEN_OPTS=-Djava.awt.headless=true
+
+ENTRYPOINT ["mvn", "-B", "-ntp", "test", "-Dtestng.suite=testng-ui.xml", "-Dbrowser=chrome", "-Dheadless=true", "-Dchrome.binary=/usr/bin/chromium"]
+CMD ["-Denv=qa"]

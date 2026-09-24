@@ -11,6 +11,10 @@ public class BrowserOptions {
 
     public ChromeOptions chromeOptions(boolean headless) {
         ChromeOptions options = new ChromeOptions();
+        String chromeBinary = System.getProperty("chrome.binary", System.getenv("CHROME_BIN"));
+        if (chromeBinary != null && !chromeBinary.isBlank()) {
+            options.setBinary(chromeBinary);
+        }
         if (headless) {
             options.addArguments("--headless=new");
         }

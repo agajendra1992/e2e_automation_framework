@@ -1,0 +1,14 @@
+FROM maven:3.9.11-eclipse-temurin-17
+
+WORKDIR /workspace
+
+COPY pom.xml testng-api.xml ./
+COPY src ./src
+
+RUN mvn -B -ntp -DskipTests -Dtestng.suite=testng-api.xml dependency:go-offline
+
+ENV ENVIRONMENT=qa
+ENV MAVEN_OPTS=-Djava.awt.headless=true
+
+ENTRYPOINT ["mvn", "-B", "-ntp", "test", "-Dtestng.suite=testng-api.xml"]
+CMD ["-Denv=qa"]
