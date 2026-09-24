@@ -7,7 +7,6 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 public class BrowserOptions {
 
     BrowserOptions() {
-
     }
 
     public ChromeOptions chromeOptions(boolean headless) {
@@ -15,24 +14,22 @@ public class BrowserOptions {
         if (headless) {
             options.addArguments("--headless=new");
         }
-        
-     options.addArguments("--no-sandbox"); 
-     options.addArguments("--disable-dev-shm-usage");
-     options.addArguments("--disable-gpu"); 
-     options.addArguments("--disable-software-rasterizer"); 
-     options.addArguments("--disable-extensions");
-     options.addArguments("--window-size=1920,1080");
-     options.addArguments("--disable-notifications");
-     options.addArguments("--user-data-dir=/tmp/jenkins-chrome");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--disable-software-rasterizer");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--window-size=1920,1080");
+        options.addArguments("--disable-notifications");
+        options.addArguments("--user-data-dir=/tmp/jenkins-chrome");
         return options;
     }
 
     public FirefoxOptions firefoxOptions(boolean headless) {
         FirefoxOptions options = new FirefoxOptions();
         if (headless) {
-            options.addArguments("--headless=new");
+            options.addArguments("--headless");
         }
-
         return options;
     }
 
@@ -45,5 +42,4 @@ public class BrowserOptions {
         options.addArguments("--disable-notifications");
         return options;
     }
-
 }
