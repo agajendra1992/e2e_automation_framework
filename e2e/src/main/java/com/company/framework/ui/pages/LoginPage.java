@@ -4,10 +4,10 @@ import org.openqa.selenium.By;
 
 public class LoginPage {
 
-    private static final String loginButtonSelector = "//a[contains(@class,'ico-login') or normalize-space(.)='Log in']";
-    private static final String emailIdSelector = "//input[@id='Email' or @name='Email']";
-    private static final String passwordIdSelector = "//input[@id='Password' or @name='Password']";
-    private static final String submitSelector = "//button[contains(@class,'login-button') or @name='Log in']";
+    private static final String loginButtonSelector = "//input[@id='login-button' or @name='login-button']";
+    private static final String emailIdSelector = "//input[@id='user-name' or @name='user-name']";
+    private static final String passwordIdSelector = "//input[@id='password' or @name='password']";
+    private static final String submitSelector = "//input[@id='login-button' or @name='login-button']";
 
     public By clickLoginElement() {
         return By.xpath(loginButtonSelector);

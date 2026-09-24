@@ -1,2 +1,100 @@
+## E2E Automation Framework
+
+This is a Java 17 Maven automation framework that supports both UI and API tests.
+TestNG controls execution, Selenium drives browsers, Rest Assured handles HTTP,
+Jackson models request payloads, SLF4J/Logback provide logs, and Extent Reports
+produces an HTML execution report.
+
+### Execution flow
+
+```text
+Maven -> testng.xml -> TestNG listeners
+		    -> UIBaseTest -> DriverFactory -> Page/Action/Validation
+		    -> APIBaseTest -> AuthManager -> Service -> ApiClient -> API
+		    -> TestListener -> Extent report + Logback logs
+```
+
+### Folder responsibilities
+
+| Folder | Responsibility |
+| --- | --- |
+| `src/main/java/.../api/client` | Common HTTP verbs and request execution |
+| `src/main/java/.../api/services` | Endpoint-level business operations such as booking and authentication |
+| `src/main/java/.../api/specifications` | Shared base URI, headers, and response specifications |
+| `src/main/java/.../api/authentication` | API token creation, storage, and cleanup |
+| `src/main/java/.../models` | Typed request and response payload objects |
+| `src/main/java/.../ui/driver` | Browser selection, options, WebDriver creation, and thread-safe storage |
+| `src/main/java/.../ui/pages` | Page locators and common Selenium interactions |
+| `src/main/java/.../ui/actions` | User workflows such as login |
+| `src/main/java/.../ui/validations` | UI assertions and state checks |
+| `src/main/java/.../config` | Environment property loading through `-Denv` |
+| `src/main/java/.../listeners` | Retry, TestNG lifecycle, logging, and report events |
+| `src/main/java/.../reporting` | Extent Reports lifecycle and output configuration |
+| `src/main/java/.../database` | Reserved database connection and query utilities |
+| `src/main/java/.../utils` | Reusable JSON and Excel helpers |
+| `src/test/java/.../tests` | Test cases and UI/API base setup |
+| `src/test/resources` | Environment properties and Logback test logging configuration |
+
+### API design
+
+Tests call services, not raw URLs:
+
+```java
+BookingRequest request = new BookingRequest(
+	"Jim", "Brown", 111, true,
+	new BookingDates("2026-01-01", "2026-01-05"), "Breakfast");
+
+Response created = bookingService.createBooking(request);
+Response fetched = bookingService.getBooking(created.jsonPath().getInt("bookingid"));
+```
+
+`ApiClient` centralizes `GET`, `POST`, `PUT`, and `DELETE`, applies common
+specifications, logs method/status, and supports the Restful Booker token cookie
+for update and delete operations.
+
+### Run tests
+
+```bash
+mvn clean test -Denv=qa -Dbrowser=chrome
+```
+
+Use `-Denv=dev` for the development properties file and set `-Dbrowser=firefox`
+or `-Dbrowser=edge` when needed. Headless execution is controlled by the selected
+environment property.
+
+### Outputs
+
+- Extent report: `target/extent-report/extent-report.html`
+- Automation log: `target/logs/automation.log`
+- Maven/TestNG reports: `target/surefire-reports`
+
+### AI pull request review
+
+The workflow at `.github/workflows/ai-pr-review.yml` reviews every non-draft pull
+request using GitHub Models. It reads the pull request diff without checking out
+or executing contributor code, posts an AI review, and fails the `AI PR Review`
+status check when the model reports blocking findings.
+
+To prevent merging without review, configure the repository's default branch
+under **Settings -> Branches -> Branch protection rules** with:
+
+1. Require a pull request before merging.
+2. Require at least one approving human review.
+3. Require status checks to pass and select `AI PR Review / AI PR Review`.
+4. Require branches to be up to date before merging.
+5. Apply the rule to administrators as well.
+
+The workflow requires GitHub Models access for the repository. The model can be
+changed through the `MODEL` value in the workflow if the organization uses a
+different approved model.
+
+### Interview explanation
+
+The framework follows separation of concerns. Tests describe business intent,
+services describe API operations, clients describe transport, models describe
+payloads, and listeners/reporting describe execution evidence. UI tests follow
+the same idea through page objects, actions, validations, and a thread-local
+driver manager. This keeps tests readable and makes shared behavior change in
+one place.
 
 

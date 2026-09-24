@@ -1,62 +1,57 @@
 package com.company.framework.api.client;
 
-<<<<<<< HEAD
-import static io.restassured.RestAssured.given;
-=======
 import io.restassured.response.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import static io.restassured.RestAssured.*;
 
->>>>>>> origin/master
 
 import com.company.framework.api.specifications.RequestSpec;
 import com.company.framework.api.specifications.ResponseSpec;
-
-<<<<<<< HEAD
-import io.restassured.response.Response;
-
 public class ApiClient {
 
-    public Response get(String uri) {
-        return given()
-                .spec(RequestSpec.getRequestSpecification(
-                        RequestSpec.headerMap("content-type", "application/json")))
-=======
-public class ApiClient {
+        private static final Logger LOGGER = LoggerFactory.getLogger(ApiClient.class);
 
     protected void AppClient() {
 
     }
 
     public Response get(String uri) {
-        return given()
+                LOGGER.info("GET {}", uri);
+                Response response = given()
                  .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
->>>>>>> origin/master
                 .when()
                 .get(uri)
                 .then()
                 .spec(ResponseSpec.getResponseSpecification())
-<<<<<<< HEAD
                 .extract()
                 .response();
+        LOGGER.info("GET {} -> {}", uri, response.getStatusCode());
+        return response;
     }
 
     public Response get(String uri, String pathParam) {
-        return given()
+        String resolvedUri = uri.contains("{id}") ? uri : uri + "/{id}";
+        LOGGER.info("GET {} with id {}", uri, pathParam);
+        Response response = given()
                 .spec(RequestSpec.getRequestSpecification(
                         RequestSpec.headerMap("content-type", "application/json")))
                 .pathParam("id", pathParam)
                 .when()
-                .get(uri)
+                .get(resolvedUri)
                 .then()
                 .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
+        LOGGER.info("GET {} -> {}", resolvedUri, response.getStatusCode());
+        return response;
     }
 
     public Response post(String uri, Object requestBody) {
-        return given()
+        LOGGER.info("POST {}", uri);
+        Response response = given()
                 .spec(RequestSpec.getRequestSpecification(
                         RequestSpec.headerMap("content-type", "application/json")))
                 .body(requestBody)
@@ -66,47 +61,62 @@ public class ApiClient {
                 .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
-    }
-
-    public Response post(String url, String baseUri, Object requestBody) {
-        return given()
-                .baseUri(baseUri)
-                .spec(RequestSpec.getRequestSpecification(
-                        RequestSpec.headerMap("content-type", "application/json")))
-=======
-                .extract().response();
-                
-    }
-
-    public Response post(String url, String uri, Object requestBody) {
-        return given()
-                .baseUri(uri)
-                .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
->>>>>>> origin/master
-                .body(requestBody)
-                .when()
-                .post(url)
-                .then()
-                .spec(ResponseSpec.getResponseSpecification())
-                .extract()
-                .response();
-<<<<<<< HEAD
+        LOGGER.info("POST {} -> {}", uri, response.getStatusCode());
+        return response;
     }
 
     public Response post(String uri, String pathParam, Object requestBody) {
-        return given()
+        String resolvedUri = uri.contains("{id}") ? uri : uri + "/{id}";
+        LOGGER.info("POST {} with id {}", uri, pathParam);
+        Response response = given()
                 .spec(RequestSpec.getRequestSpecification(
                         RequestSpec.headerMap("content-type", "application/json")))
                 .pathParam("id", pathParam)
                 .body(requestBody)
                 .when()
-                .post(uri)
+                .post(resolvedUri)
                 .then()
                 .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
-=======
+        LOGGER.info("POST {} -> {}", resolvedUri, response.getStatusCode());
+        return response;
 
->>>>>>> origin/master
+    }
+
+    public Response put(String uri, String pathParam, Object requestBody, String token) {
+        String resolvedUri = uri.contains("{id}") ? uri : uri + "/{id}";
+        LOGGER.info("PUT {} with id {}", uri, pathParam);
+        Response response = given()
+                .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
+                .pathParam("id", pathParam)
+                .cookie("token", token)
+                .body(requestBody)
+                .when()
+                .put(resolvedUri)
+                .then()
+                .spec(ResponseSpec.getResponseSpecification())
+                .extract()
+                .response();
+        LOGGER.info("PUT {} -> {}", resolvedUri, response.getStatusCode());
+        return response;
+    }
+
+    public Response delete(String uri, String pathParam, String token) {
+        String resolvedUri = uri.contains("{id}") ? uri : uri + "/{id}";
+        LOGGER.info("DELETE {} with id {}", uri, pathParam);
+        Response response = given()
+                .spec(RequestSpec.getRequestSpecification(RequestSpec.headerMap("content-type", "application/json")))
+                .pathParam("id", pathParam)
+                .cookie("token", token)
+                .when()
+                .delete(resolvedUri)
+                .then()
+                .spec(ResponseSpec.getResponseSpecification())
+                .extract()
+                .response();
+        LOGGER.info("DELETE {} -> {}", resolvedUri, response.getStatusCode());
+        return response;
+
     }
 }
