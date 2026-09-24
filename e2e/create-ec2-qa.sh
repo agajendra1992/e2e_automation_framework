@@ -13,11 +13,11 @@ INSTANCE_NAME="qa-automation-server"
 
 INSTANCE_TYPE="t3.small"
 
-VPC_ID="vpc-05d7719c05d193867"
+VPC_ID="enter your vpc id"
 
 SECURITY_GROUP_NAME="qa-automation-sg"
 
-KEY_PATH="/Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/resources/config/qa-automation-key.pem"
+KEY_PATH="/Users/gajendrasaxena/Documents/e2e_automation_framework/e2e/src/test/resources/config/enter your keypairqa-automation-key.pem"
 
 GITHUB_REPO="https://github.com/agajendra1992/e2e_automation_framework.git"
 

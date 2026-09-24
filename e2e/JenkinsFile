@@ -33,6 +33,18 @@ pipeline {
             }
         }
 
+         stage('Compile Tests') {
+            steps {
+                dir('e2e') {
+                    sh '''
+                        export JAVA_HOME=$JAVA17_HOME
+                        export PATH=$JAVA_HOME/bin:$PATH
+                        mvn compile
+                    '''
+                }
+            }
+        }
+
         stage('Run Tests') {
             steps {
                 dir('e2e') {
