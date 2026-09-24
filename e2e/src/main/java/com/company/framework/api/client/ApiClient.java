@@ -3,6 +3,7 @@ package com.company.framework.api.client;
 import static io.restassured.RestAssured.given;
 
 import com.company.framework.api.specifications.RequestSpec;
+import com.company.framework.api.specifications.ResponseSpec;
 
 import io.restassured.response.Response;
 
@@ -15,6 +16,7 @@ public class ApiClient {
                 .when()
                 .get(uri)
                 .then()
+                .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
     }
@@ -27,6 +29,7 @@ public class ApiClient {
                 .when()
                 .get(uri)
                 .then()
+                .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
     }
@@ -39,6 +42,21 @@ public class ApiClient {
                 .when()
                 .post(uri)
                 .then()
+                .spec(ResponseSpec.getResponseSpecification())
+                .extract()
+                .response();
+    }
+
+    public Response post(String url, String baseUri, Object requestBody) {
+        return given()
+                .baseUri(baseUri)
+                .spec(RequestSpec.getRequestSpecification(
+                        RequestSpec.headerMap("content-type", "application/json")))
+                .body(requestBody)
+                .when()
+                .post(url)
+                .then()
+                .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
     }
@@ -52,6 +70,7 @@ public class ApiClient {
                 .when()
                 .post(uri)
                 .then()
+                .spec(ResponseSpec.getResponseSpecification())
                 .extract()
                 .response();
     }
